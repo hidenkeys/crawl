@@ -28,10 +28,11 @@ func ConnectDatabase() {
 func MigrateDatabase() {
 	// Perform auto migration for all necessary models
 	err := DB.AutoMigrate(
+		&models.Album{},    // Album model
 		&models.User{},     // User model
 		&models.Song{},     // Song model
-		&models.Album{},    // Album model
 		&models.Purchase{}, // Purchase model
+		&models.SongMetrics{},
 		// Add any other models that you want to auto-migrate
 	)
 	if err != nil {

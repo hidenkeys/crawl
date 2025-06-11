@@ -19,6 +19,10 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Defines values for UserRole.
 const (
 	Artist   UserRole = "artist"
@@ -54,14 +58,26 @@ type Purchase struct {
 
 // Song defines model for Song.
 type Song struct {
-	AlbumId     *openapi_types.UUID `json:"album_id,omitempty"`
-	ArtistId    *openapi_types.UUID `json:"artist_id,omitempty"`
-	ArtistNames *[]string           `json:"artist_names,omitempty"`
-	Genre       *string             `json:"genre,omitempty"`
-	Id          *openapi_types.UUID `json:"id,omitempty"`
-	Price       *float32            `json:"price,omitempty"`
-	ReleaseDate *openapi_types.Date `json:"release_date,omitempty"`
-	Title       *string             `json:"title,omitempty"`
+	AlbumId      *openapi_types.UUID `json:"album_id"`
+	ArtistId     *openapi_types.UUID `json:"artist_id"`
+	ArtistsNames []string            `json:"artists_names"`
+
+	// AudioUrl URL to the song's audio file
+	AudioUrl  *string    `json:"audio_url,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+
+	// Duration Duration of the song in seconds
+	Duration *int               `json:"duration"`
+	Genre    string             `json:"genre"`
+	Id       openapi_types.UUID `json:"id"`
+
+	// IsPurchased Indicates if the song is purchased
+	IsPurchased bool       `json:"is_purchased"`
+	Price       *float32   `json:"price"`
+	ReleaseDate *time.Time `json:"release_date"`
+	Title       string     `json:"title"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // Tip defines model for Tip.
@@ -88,15 +104,59 @@ type User struct {
 // UserRole defines model for User.Role.
 type UserRole string
 
+// GetAllAlbumsParams defines parameters for GetAllAlbums.
+type GetAllAlbumsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetSongsInAlbumParams defines parameters for GetSongsInAlbum.
+type GetSongsInAlbumParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetArtistAlbumsParams defines parameters for GetArtistAlbums.
+type GetArtistAlbumsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetArtistSongsParams defines parameters for GetArtistSongs.
+type GetArtistSongsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // UserLoginJSONBody defines parameters for UserLogin.
 type UserLoginJSONBody struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
 }
 
+// GetPurchasedAlbumsParams defines parameters for GetPurchasedAlbums.
+type GetPurchasedAlbumsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetPurchasedSongsParams defines parameters for GetPurchasedSongs.
+type GetPurchasedSongsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetAllSongsParams defines parameters for GetAllSongs.
+type GetAllSongsParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // SearchSongsParams defines parameters for SearchSongs.
 type SearchSongsParams struct {
-	Query string `form:"query" json:"query"`
+	Query  string `form:"query" json:"query"`
+	Limit  *int   `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int   `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // CreateUserJSONBody defines parameters for CreateUser.
@@ -142,7 +202,7 @@ type UpdateUserJSONRequestBody UpdateUserJSONBody
 type ServerInterface interface {
 	// Get all albums
 	// (GET /albums)
-	GetAllAlbums(c *fiber.Ctx) error
+	GetAllAlbums(c *fiber.Ctx, params GetAllAlbumsParams) error
 	// Create a new album
 	// (POST /albums)
 	CreateAlbum(c *fiber.Ctx) error
@@ -157,10 +217,10 @@ type ServerInterface interface {
 	UpdateAlbum(c *fiber.Ctx, albumId openapi_types.UUID) error
 	// Get all songs in an album
 	// (GET /albums/{albumId}/songs)
-	GetSongsInAlbum(c *fiber.Ctx, albumId openapi_types.UUID) error
+	GetSongsInAlbum(c *fiber.Ctx, albumId openapi_types.UUID, params GetSongsInAlbumParams) error
 	// Get all albums by a specific artist
 	// (GET /artists/{artistId}/albums)
-	GetArtistAlbums(c *fiber.Ctx, artistId openapi_types.UUID) error
+	GetArtistAlbums(c *fiber.Ctx, artistId openapi_types.UUID, params GetArtistAlbumsParams) error
 	// Get artist's dashboard data
 	// (GET /artists/{artistId}/dashboard)
 	GetArtistDashboard(c *fiber.Ctx, artistId openapi_types.UUID) error
@@ -169,19 +229,19 @@ type ServerInterface interface {
 	GetArtistRevenueDashboard(c *fiber.Ctx, artistId openapi_types.UUID) error
 	// Get all songs by a specific artist
 	// (GET /artists/{artistId}/songs)
-	GetArtistSongs(c *fiber.Ctx, artistId openapi_types.UUID) error
+	GetArtistSongs(c *fiber.Ctx, artistId openapi_types.UUID, params GetArtistSongsParams) error
 	// User login
 	// (POST /login)
 	UserLogin(c *fiber.Ctx) error
 	// Get all purchased albums by a user
 	// (GET /purchases/albums/{userId})
-	GetPurchasedAlbums(c *fiber.Ctx, userId openapi_types.UUID) error
+	GetPurchasedAlbums(c *fiber.Ctx, userId openapi_types.UUID, params GetPurchasedAlbumsParams) error
 	// Get all purchased songs by a user
 	// (GET /purchases/songs/{userId})
-	GetPurchasedSongs(c *fiber.Ctx, userId openapi_types.UUID) error
+	GetPurchasedSongs(c *fiber.Ctx, userId openapi_types.UUID, params GetPurchasedSongsParams) error
 	// Get all songs
 	// (GET /songs)
-	GetAllSongs(c *fiber.Ctx) error
+	GetAllSongs(c *fiber.Ctx, params GetAllSongsParams) error
 	// Create a new song
 	// (POST /songs)
 	CreateSong(c *fiber.Ctx) error
@@ -221,11 +281,40 @@ type MiddlewareFunc fiber.Handler
 // GetAllAlbums operation middleware
 func (siw *ServerInterfaceWrapper) GetAllAlbums(c *fiber.Ctx) error {
 
-	return siw.Handler.GetAllAlbums(c)
+	var err error
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAllAlbumsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetAllAlbums(c, params)
 }
 
 // CreateAlbum operation middleware
 func (siw *ServerInterfaceWrapper) CreateAlbum(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.CreateAlbum(c)
 }
@@ -243,6 +332,8 @@ func (siw *ServerInterfaceWrapper) DeleteAlbum(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter albumId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.DeleteAlbum(c, albumId)
 }
 
@@ -258,6 +349,8 @@ func (siw *ServerInterfaceWrapper) GetAlbum(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter albumId: %w", err).Error())
 	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.GetAlbum(c, albumId)
 }
@@ -275,6 +368,8 @@ func (siw *ServerInterfaceWrapper) UpdateAlbum(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter albumId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.UpdateAlbum(c, albumId)
 }
 
@@ -291,7 +386,32 @@ func (siw *ServerInterfaceWrapper) GetSongsInAlbum(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter albumId: %w", err).Error())
 	}
 
-	return siw.Handler.GetSongsInAlbum(c, albumId)
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSongsInAlbumParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetSongsInAlbum(c, albumId, params)
 }
 
 // GetArtistAlbums operation middleware
@@ -307,7 +427,32 @@ func (siw *ServerInterfaceWrapper) GetArtistAlbums(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter artistId: %w", err).Error())
 	}
 
-	return siw.Handler.GetArtistAlbums(c, artistId)
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetArtistAlbumsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetArtistAlbums(c, artistId, params)
 }
 
 // GetArtistDashboard operation middleware
@@ -322,6 +467,8 @@ func (siw *ServerInterfaceWrapper) GetArtistDashboard(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter artistId: %w", err).Error())
 	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.GetArtistDashboard(c, artistId)
 }
@@ -339,6 +486,8 @@ func (siw *ServerInterfaceWrapper) GetArtistRevenueDashboard(c *fiber.Ctx) error
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter artistId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.GetArtistRevenueDashboard(c, artistId)
 }
 
@@ -355,11 +504,38 @@ func (siw *ServerInterfaceWrapper) GetArtistSongs(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter artistId: %w", err).Error())
 	}
 
-	return siw.Handler.GetArtistSongs(c, artistId)
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetArtistSongsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetArtistSongs(c, artistId, params)
 }
 
 // UserLogin operation middleware
 func (siw *ServerInterfaceWrapper) UserLogin(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.UserLogin(c)
 }
@@ -377,7 +553,32 @@ func (siw *ServerInterfaceWrapper) GetPurchasedAlbums(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
 	}
 
-	return siw.Handler.GetPurchasedAlbums(c, userId)
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPurchasedAlbumsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetPurchasedAlbums(c, userId, params)
 }
 
 // GetPurchasedSongs operation middleware
@@ -393,17 +594,71 @@ func (siw *ServerInterfaceWrapper) GetPurchasedSongs(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
 	}
 
-	return siw.Handler.GetPurchasedSongs(c, userId)
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPurchasedSongsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetPurchasedSongs(c, userId, params)
 }
 
 // GetAllSongs operation middleware
 func (siw *ServerInterfaceWrapper) GetAllSongs(c *fiber.Ctx) error {
 
-	return siw.Handler.GetAllSongs(c)
+	var err error
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAllSongsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
+	return siw.Handler.GetAllSongs(c, params)
 }
 
 // CreateSong operation middleware
 func (siw *ServerInterfaceWrapper) CreateSong(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.CreateSong(c)
 }
@@ -412,6 +667,8 @@ func (siw *ServerInterfaceWrapper) CreateSong(c *fiber.Ctx) error {
 func (siw *ServerInterfaceWrapper) SearchSongs(c *fiber.Ctx) error {
 
 	var err error
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params SearchSongsParams
@@ -437,6 +694,20 @@ func (siw *ServerInterfaceWrapper) SearchSongs(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter query: %w", err).Error())
 	}
 
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", query, &params.Offset)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter offset: %w", err).Error())
+	}
+
 	return siw.Handler.SearchSongs(c, params)
 }
 
@@ -452,6 +723,8 @@ func (siw *ServerInterfaceWrapper) DeleteSong(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter songId: %w", err).Error())
 	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.DeleteSong(c, songId)
 }
@@ -469,6 +742,8 @@ func (siw *ServerInterfaceWrapper) GetSong(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter songId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.GetSong(c, songId)
 }
 
@@ -485,11 +760,15 @@ func (siw *ServerInterfaceWrapper) UpdateSong(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter songId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.UpdateSong(c, songId)
 }
 
 // CreateUser operation middleware
 func (siw *ServerInterfaceWrapper) CreateUser(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.CreateUser(c)
 }
@@ -507,6 +786,8 @@ func (siw *ServerInterfaceWrapper) DeleteUser(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.DeleteUser(c, userId)
 }
 
@@ -523,6 +804,8 @@ func (siw *ServerInterfaceWrapper) GetUser(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
 	}
 
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
 	return siw.Handler.GetUser(c, userId)
 }
 
@@ -538,6 +821,8 @@ func (siw *ServerInterfaceWrapper) UpdateUser(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
 	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.UpdateUser(c, userId)
 }
@@ -614,32 +899,37 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"4jTVW/UMwcgntyGT7u/v/w8AAP//ZoeSZCcqAAA=",
+	"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",
+	"AA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

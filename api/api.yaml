@@ -4,6 +4,34 @@ info:
   description: API for managing music albums, songs, users, and purchases.
   version: 1.0.0
 paths:
+
+  /login:
+    post:
+      summary: User login
+      operationId: userLogin
+      requestBody:
+        description: User login credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Login successful, returns user info and token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Unauthorized, invalid credentials
   /users:
     post:
       summary: Create a new user
@@ -111,34 +139,6 @@ paths:
         '400':
           description: Bad request
 
-  /login:
-    post:
-      summary: User login
-      operationId: userLogin
-      requestBody:
-        description: User login credentials
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-              required:
-                - username
-                - password
-      responses:
-        '200':
-          description: Login successful, returns user info and token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
-          description: Unauthorized, invalid credentials
-
   /albums:
     post:
       summary: Create a new album
@@ -156,6 +156,21 @@ paths:
     get:
       summary: Get all albums
       operationId: getAllAlbums
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of albums to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of albums to skip for pagination
       responses:
         '200':
           description: List of albums
@@ -230,6 +245,20 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of songs to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of songs to skip for pagination
       responses:
         '200':
           description: List of songs in the album
@@ -257,6 +286,21 @@ paths:
     get:
       summary: Get all songs
       operationId: getAllSongs
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of songs to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of songs to skip for pagination
       responses:
         '200':
           description: List of all songs
@@ -331,6 +375,20 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of songs to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of songs to skip for pagination
       responses:
         '200':
           description: List of purchased songs
@@ -352,6 +410,20 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of albums to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of albums to skip for pagination
       responses:
         '200':
           description: List of purchased albums
@@ -372,6 +444,20 @@ paths:
           required: true
           schema:
             type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of songs to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of songs to skip for pagination
       responses:
         '200':
           description: List of matching songs
@@ -393,6 +479,20 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of songs to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of songs to skip for pagination
       responses:
         '200':
           description: List of songs by the artist
@@ -414,6 +514,20 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: The number of albums to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: The number of albums to skip for pagination
       responses:
         '200':
           description: List of albums by the artist
@@ -500,6 +614,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Tip'
 
+
 components:
   schemas:
     Album:
@@ -539,7 +654,8 @@ components:
         artist_id:
           type: string
           format: uuid
-        artist_names:
+          nullable: true
+        artists_names:
           type: array
           items:
             type: string
@@ -548,12 +664,48 @@ components:
         price:
           type: number
           format: float
+          nullable: true
+        duration:
+          type: integer
+          description: Duration of the song in seconds
+          nullable: true
+        audio_url:
+          type: string
+          description: URL to the song's audio file
         release_date:
           type: string
-          format: date
+          format: date-time
+          nullable: true
         album_id:
           type: string
           format: uuid
+          nullable: true
+        is_purchased:
+          type: boolean
+          description: Indicates if the song is purchased
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - title
+        - artist_id
+        - artists_names
+        - genre
+        - price
+        - duration
+        - release_date
+        - created_at
+        - updated_at
+        - is_purchased
+
 
     User:
       type: object
@@ -634,27 +786,27 @@ components:
         - error_code
       properties:
         error_code:
-          type: string 
+          type: string
         message:
           type: string
   responses:
-      BadRequestError:
+        BadRequestError:
           description: Invalid input
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      InternalServerError:
+        InternalServerError:
           description: Server error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      NotFound:
+        NotFound:
           description: Resource not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  security:
-      - BearerAuth: [ ]
+security:
+    - BearerAuth: [ ]

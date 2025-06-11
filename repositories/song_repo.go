@@ -10,6 +10,7 @@ type SongRepository interface {
 	CreateSong(song *models.Song) (*models.Song, error)
 	GetSongByID(id uuid.UUID) (*models.Song, error)
 	GetSongsByArtist(artistID uuid.UUID, limit, offset int) ([]models.Song, int64, error)
+	GetPurchasedSongsByUser(userID uuid.UUID, songs *[]models.Song) error
 	UpdateSong(id uuid.UUID, song *models.Song) (*models.Song, error)
 	DeleteSong(id uuid.UUID) error
 }

@@ -15,7 +15,8 @@ type Server struct {
 	tipService         *services.TipService
 }
 
-func NewServer(db *gorm.DB, usrService *services.UserService,
+func NewServer(db *gorm.DB,
+	usrService *services.UserService,
 	albumService *services.AlbumService,
 	purchaseService *services.PurchaseService,
 	songService *services.SongService,

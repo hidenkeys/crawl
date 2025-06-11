@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"crawl/models"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -15,6 +16,9 @@ func NewSongRepository(db *gorm.DB) SongRepository {
 }
 
 func (r *SongRepositoryImpl) CreateSong(song *models.Song) (*models.Song, error) {
+	fmt.Println("in repo CreateSong")
+	fmt.Println(song.ArtistsNames)
+	fmt.Println(song)
 	err := r.DB.Create(song).Error
 	if err != nil {
 		return nil, err
@@ -62,4 +66,8 @@ func (r *SongRepositoryImpl) DeleteSong(id uuid.UUID) error {
 		return err
 	}
 	return r.DB.Delete(&song).Error
+}
+
+func (r *SongRepositoryImpl) GetPurchasedSongsByUser(userID uuid.UUID, songs *[]models.Song) error {
+	return r.DB.Where("artist_id = ? AND is_purchased = ?", userID, true).Find(songs).Error
 }

@@ -14,7 +14,7 @@ type Song struct {
 	ArtistID     uuid.UUID      `gorm:"not null;index:idx_artist_id" json:"artist_id"`    // Foreign key to User (Artist)
 	ArtistsNames []string       `gorm:"type:text[]" json:"artists_names"`                 // Array of artist names
 	Genre        string         `gorm:"not null;index:idx_genre,priority:2" json:"genre"` // Indexed for genre search
-	Price        float64        `gorm:"not null" json:"price"`
+	Price        float32        `gorm:"not null" json:"price"`
 	Duration     int            `gorm:"not null" json:"duration"`           // Duration of the song in seconds
 	AudioURL     string         `gorm:"type:varchar(255)" json:"audio_url"` // URL for the song's audio file
 	ReleaseDate  time.Time      `gorm:"not null" json:"release_date"`

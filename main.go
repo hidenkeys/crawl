@@ -24,7 +24,22 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
 
-	server := handlers.NewServer(db, userService)
+	albumRepo := repositories.NewAlbumRepository(db)
+	albumService := services.NewAlbumService(albumRepo)
+
+	purchaseRepo := repositories.NewPurchaseRepository(db)
+	purchaseService := services.NewPurchaseService(purchaseRepo)
+
+	songRepo := repositories.NewSongRepository(db)
+	songService := services.NewSongService(songRepo)
+
+	songMetricsRepo := repositories.NewSongMetricsRepository(db)
+	songMetricsService := services.NewSongMetricsService(songMetricsRepo)
+
+	tipsRepo := repositories.NewTipRepository(db)
+	tipsService := services.NewTipService(tipsRepo)
+
+	server := handlers.NewServer(db, userService, albumService, purchaseService, songService, songMetricsService, tipsService)
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
@@ -36,6 +51,6 @@ func main() {
 	api.RegisterHandlers(app, server)
 
 	// And we serve HTTP until the world ends.
-	log.Fatal(app.Listen("0.0.0.0:8080"))
+	log.Fatal(app.Listen("0.0.0.0:8082"))
 
 }
