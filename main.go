@@ -43,7 +43,7 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://crawl-app.vercel.app, https://crawl-admin.vercel.app/",
+		AllowOrigins: "https://crawl-app.vercel.app, https://crawl-admin.vercel.app/, https://crawl-app.vercel.app, http://localhost:3000",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
