@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"strconv"
 	"strings"
@@ -96,7 +95,7 @@ func (s Server) CreateSong(c *fiber.Ctx) error {
 		ID:           uuid.New(),
 		Title:        req.Title,
 		ArtistID:     uuid.MustParse(req.ArtistId.String()),
-		ArtistsNames: pq.StringArray(req.ArtistsNames),
+		ArtistsNames: req.ArtistsNames,
 		Genre:        req.Genre,
 		Price:        100,
 		Duration:     *req.Duration,
@@ -105,7 +104,8 @@ func (s Server) CreateSong(c *fiber.Ctx) error {
 	}
 
 	if req.AlbumId != nil {
-		song.AlbumID = uuid.MustParse(req.AlbumId.String())
+		albumUUID := uuid.MustParse(req.AlbumId.String())
+		song.AlbumID = &albumUUID
 	}
 
 	createdSong, err := s.songService.CreateSong(c.Context(), song)
@@ -262,7 +262,7 @@ func (s Server) UpdateSong(c *fiber.Ctx, songId openapi_types.UUID) error {
 		existingSong.ArtistID = uuid.MustParse(updateReq.ArtistId.String())
 	}
 
-	if updateReq.ArtistsNames != nil {
+	if updateReq.ArtistsNames != "" {
 		existingSong.ArtistsNames = updateReq.ArtistsNames
 	}
 
@@ -287,7 +287,8 @@ func (s Server) UpdateSong(c *fiber.Ctx, songId openapi_types.UUID) error {
 	}
 
 	if updateReq.AlbumId != nil {
-		existingSong.AlbumID = uuid.MustParse(updateReq.AlbumId.String())
+		albumUUID := uuid.MustParse(updateReq.AlbumId.String())
+		existingSong.AlbumID = &albumUUID
 	}
 
 	updatedSong, err := s.songService.UpdateSong(c.Context(), songUUID, existingSong)

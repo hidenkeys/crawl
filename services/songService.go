@@ -4,7 +4,6 @@ import (
 	"context"
 	"crawl/models"
 	"crawl/repositories"
-	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -18,8 +17,6 @@ func NewSongService(songRepo repositories.SongRepository) *SongService {
 
 // CreateSong creates a new song
 func (s *SongService) CreateSong(ctx context.Context, song *models.Song) (*models.Song, error) {
-	fmt.Println(song.ArtistsNames)
-	fmt.Println("in service CreateSong")
 	return s.songRepo.CreateSong(song)
 }
 

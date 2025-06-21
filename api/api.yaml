@@ -656,9 +656,7 @@ components:
           format: uuid
           nullable: true
         artists_names:
-          type: array
-          items:
-            type: string
+          type: string
         genre:
           type: string
         price:

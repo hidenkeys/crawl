@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"crawl/models"
-	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -16,9 +15,6 @@ func NewSongRepository(db *gorm.DB) SongRepository {
 }
 
 func (r *SongRepositoryImpl) CreateSong(song *models.Song) (*models.Song, error) {
-	fmt.Println("in repo CreateSong")
-	fmt.Println(song.ArtistsNames)
-	fmt.Println(song)
 	err := r.DB.Create(song).Error
 	if err != nil {
 		return nil, err
