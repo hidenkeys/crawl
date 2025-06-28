@@ -129,3 +129,7 @@ func (h *Handlers) getUserIDFromToken(c *fiber.Ctx) (types.UUID, error) {
 
 	return userID, nil
 }
+
+func (h *Handlers) GetRole() {
+	panic("Implement me")
+}
