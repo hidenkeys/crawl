@@ -3,645 +3,186 @@ info:
   title: Crawl API
   description: API for managing music albums, songs, users, and purchases.
   version: 1.0.0
-paths:
+tags:
+  - name: Public
+  - name: Listener
+  - name: Artist
+  - name: Admin
 
-  /login:
-    post:
-      summary: User login
-      operationId: userLogin
-      requestBody:
-        description: User login credentials
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-              required:
-                - username
-                - password
-      responses:
-        '200':
-          description: Login successful, returns user info and token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
-          description: Unauthorized, invalid credentials
-  /users:
-    post:
-      summary: Create a new user
-      operationId: createUser
-      requestBody:
-        description: User creation data
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                first_name:
-                  type: string
-                last_name:
-                  type: string
-                username:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                confirm_password:
-                  type: string
-              required:
-                - first_name
-                - last_name
-                - username
-                - email
-                - password
-                - confirm_password
-      responses:
-        '201':
-          description: User created successfully
-        '400':
-          description: Bad request, validation error
-
-  /users/{userId}:
-    get:
-      summary: Get user details
-      operationId: getUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-    put:
-      summary: Update user details
-      operationId: updateUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: User update data
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                first_name:
-                  type: string
-                last_name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - first_name
-                - last_name
-                - email
-                - password
-      responses:
-        '200':
-          description: User updated successfully
-        '400':
-          description: Bad request, validation error
-
-    delete:
-      summary: Delete user
-      operationId: deleteUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: User deleted successfully
-        '400':
-          description: Bad request
-
-  /albums:
-    post:
-      summary: Create a new album
-      operationId: createAlbum
-      requestBody:
-        description: Album data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Album'
-      responses:
-        '201':
-          description: Album created successfully
-
-    get:
-      summary: Get all albums
-      operationId: getAllAlbums
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of albums to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of albums to skip for pagination
-      responses:
-        '200':
-          description: List of albums
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
-
-  /albums/{albumId}:
-    get:
-      summary: Get details of a specific album
-      operationId: getAlbum
-      parameters:
-        - name: albumId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Album details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Album'
-
-    put:
-      summary: Update album details
-      operationId: updateAlbum
-      parameters:
-        - name: albumId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Album update data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Album'
-      responses:
-        '200':
-          description: Album updated successfully
-
-    delete:
-      summary: Delete album
-      operationId: deleteAlbum
-      parameters:
-        - name: albumId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Album deleted successfully
-
-  /albums/{albumId}/songs:
-    get:
-      summary: Get all songs in an album
-      operationId: getSongsInAlbum
-      parameters:
-        - name: albumId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of songs to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of songs to skip for pagination
-      responses:
-        '200':
-          description: List of songs in the album
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
-
-  /songs:
-    post:
-      summary: Create a new song
-      operationId: createSong
-      requestBody:
-        description: Song data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Song'
-      responses:
-        '201':
-          description: Song created successfully
-
-    get:
-      summary: Get all songs
-      operationId: getAllSongs
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of songs to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of songs to skip for pagination
-      responses:
-        '200':
-          description: List of all songs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
-
-  /songs/{songId}:
-    get:
-      summary: Get details of a specific song
-      operationId: getSong
-      parameters:
-        - name: songId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Song details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Song'
-
-    put:
-      summary: Update song details
-      operationId: updateSong
-      parameters:
-        - name: songId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Song update data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Song'
-      responses:
-        '200':
-          description: Song updated successfully
-
-    delete:
-      summary: Delete song
-      operationId: deleteSong
-      parameters:
-        - name: songId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Song deleted successfully
-
-  /purchases/songs/{userId}:
-    get:
-      summary: Get all purchased songs by a user
-      operationId: getPurchasedSongs
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of songs to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of songs to skip for pagination
-      responses:
-        '200':
-          description: List of purchased songs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
-
-  /purchases/albums/{userId}:
-    get:
-      summary: Get all purchased albums by a user
-      operationId: getPurchasedAlbums
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of albums to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of albums to skip for pagination
-      responses:
-        '200':
-          description: List of purchased albums
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
-
-  /songs/search:
-    get:
-      summary: Search songs by title, artist, or genre
-      operationId: searchSongs
-      parameters:
-        - name: query
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of songs to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of songs to skip for pagination
-      responses:
-        '200':
-          description: List of matching songs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
-
-  /artists/{artistId}/songs:
-    get:
-      summary: Get all songs by a specific artist
-      operationId: getArtistSongs
-      parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of songs to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of songs to skip for pagination
-      responses:
-        '200':
-          description: List of songs by the artist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
-
-  /artists/{artistId}/albums:
-    get:
-      summary: Get all albums by a specific artist
-      operationId: getArtistAlbums
-      parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            description: The number of albums to return
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            description: The number of albums to skip for pagination
-      responses:
-        '200':
-          description: List of albums by the artist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
-
-  /artists/{artistId}/dashboard:
-    get:
-      summary: Get artist's dashboard data
-      operationId: getArtistDashboard
-      parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Artist dashboard data
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total_songs_uploaded:
-                    type: integer
-                  total_purchases:
-                    type: integer
-                  revenue_this_month:
-                    type: number
-                    format: float
-                  revenue_all_time:
-                    type: number
-                    format: float
-                  latest_song_update:
-                    $ref: '#/components/schemas/Song'
-                  new_purchases:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Purchase'
-
-  /artists/{artistId}/revenue-dashboard:
-    get:
-      summary: Get artist's revenue metrics
-      operationId: getArtistRevenueDashboard
-      parameters:
-        - name: artistId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Artist revenue dashboard data
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  revenue_this_month:
-                    type: number
-                    format: float
-                  revenue_all_time:
-                    type: number
-                    format: float
-                  top_performing_songs:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Song'
-                  tips_received:
-                    type: number
-                    format: float
-                  tips_received_this_month:
-                    type: number
-                    format: float
-                  recent_tips:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Tip'
-
+servers:
+  - url: http://localhost:8082
+    description: localhost
+#security:
+#  - BearerAuth: []
+#  - OAuth2:
+#      - user:read
+#      - user:write
+#      - artist:read
+#      - artist:write
 
 components:
+  parameters:
+    userId:
+      name: userId
+      in: path
+      description: ID of the user
+      required: true
+      schema:
+        type: string
+        format: uuid
+    artistId:
+      name: artistId
+      in: path
+      description: ID of the artist
+      required: true
+      schema:
+        type: string
+        format: uuid
+    songId:
+      name: songId
+      in: path
+      description: ID of the song
+      required: true
+      schema:
+        type: string
+        format: uuid
+    albumId:
+      name: albumId
+      in: path
+      description: ID of the album
+      required: true
+      schema:
+        type: string
+        format: uuid
+    genreId:
+      name: genreId
+      in: path
+      description: ID of the genre
+      required: true
+      schema:
+        type: string
+        format: uuid
+    playlistId:
+      name: playlistId
+      in: path
+      description: ID of the playlist
+      required: true
+      schema:
+        type: string
+        format: uuid
+    page:
+      name: page
+      in: query
+      description: Page integer
+      schema:
+        type: integer
+        default: 1
+    limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+#    OAuth2:
+#      type: oauth2
+#      flows:
+#        authorizationCode:
+#          authorizationUrl: https://api.musicapp.com/oauth/authorize
+#          tokenUrl: https://api.musicapp.com/oauth/token
+#          scopes:
+#            user:read: Read user data
+#            user:write: Modify user data
+#            artist:read: Read artist data
+#            artist:write: Modify artist data
+
   schemas:
-    Album:
+    User:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        title:
+        firstName:
           type: string
-        artist_id:
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        username:
+          type: string
+          example: john_doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          example: john@example.com
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        profileImageUrl:
+          type: string
+          format: uri
+          example: "https://cdn.musicapp.com/users/123/profile.jpg"
+        bio:
+          type: string
+          example: "Music lover from New York"
+        isArtist:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - firstName
+        - lastName
+        - username
+        - email
+        - isArtist
+        - password
+
+    Artist:
+      type: object
+      properties:
+        id:
           type: string
           format: uuid
-        artist_name:
-          type: array
-          items:
-            type: string
-        price:
-          type: number
-          format: float
-        release_date:
+        userId:
           type: string
-          format: date
-        songs:
-          type: array
-          items:
-            $ref: '#/components/schemas/Song'
+          format: uuid
+        artistName:
+          type: string
+          example: "The Rock Band"
+        verified:
+          type: boolean
+          example: true
+        walletBalance:
+          type: integer
+          format: float
+          example: 1250.50
+        monthlyListeners:
+          type: integer
+          example: 125000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+        - artistName
 
     Song:
       type: object
@@ -651,85 +192,142 @@ components:
           format: uuid
         title:
           type: string
-        artist_id:
+          example: "Awesome Song"
+        artistId:
           type: string
           format: uuid
-          nullable: true
+        albumId:
+          type: string
+          format: uuid
+        genreId:
+          type: string
+          format: uuid
+        duration:
+          type: integer
+          description: Duration in seconds
+          example: 237
+        price:
+          type: integer
+          format: float
+          example: 1.29
+        audioUrl:
+          type: string
+          format: uri
+          example: "https://cdn.musicapp.com/songs/789/audio.mp3"
+        previewUrl:
+          type: string
+          format: uri
+          example: "https://cdn.musicapp.com/songs/789/preview.mp3"
+        releaseDate:
+          type: string
+          format: date
+          example: "2023-05-15"
         artists_names:
           type: array
           items:
             type: string
-        genre:
+        coverImageUrl:
           type: string
-        price:
-          type: number
-          format: float
-          nullable: true
-        duration:
+          format: uri
+          example: "https://cdn.musicapp.com/songs/789/cover.jpg"
+        playsCount:
           type: integer
-          description: Duration of the song in seconds
-          nullable: true
-        audio_url:
-          type: string
-          description: URL to the song's audio file
-        release_date:
-          type: string
-          format: date-time
-          nullable: true
-        album_id:
-          type: string
-          format: uuid
-          nullable: true
-        is_purchased:
+          example: 1250000
+        is_flagged:
           type: boolean
-          description: Indicates if the song is purchased
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
-        deleted_at:
-          type: string
-          format: date-time
-          nullable: true
       required:
-        - id
         - title
-        - artist_id
+        - artistId
         - artists_names
-        - genre
-        - price
         - duration
-        - release_date
-        - created_at
-        - updated_at
-        - is_purchased
+        - audioUrl
+        - genreId
+        - price
+        - releaseDate
 
-
-    User:
+    Album:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        first_name:
+        title:
           type: string
-        last_name:
+          example: "Greatest Hits"
+        artistId:
           type: string
-        username:
+          format: uuid
+        description:
           type: string
-        email:
+          example: "Collection of our best songs"
+        price:
+          type: integer
+          format: float
+          example: 9.99
+        is_flagged:
+          type: boolean
+        coverImageUrl:
           type: string
-        password:
+          format: uri
+          example: "https://cdn.musicapp.com/albums/101/cover.jpg"
+        releaseDate:
           type: string
-        confirm_password:
+          format: date
+          example: "2023-01-20"
+        createdAt:
           type: string
-        role:
+          format: date-time
+        updatedAt:
           type: string
-          enum:
-            - listener
-            - artist
+          format: date-time
+      required:
+        - title
+        - artistId
+
+    Genre:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Rock"
+        description:
+          type: string
+          example: "Genre characterized by amplified instruments"
+        imageUrl:
+          type: string
+          format: uri
+          example: "https://cdn.musicapp.com/genres/rock.jpg"
+      required:
+        - name
+
+    Contributor:
+      type: object
+      properties:
+        artistId:
+          type: string
+          format: uuid
+        contributionType:
+          type: string
+          example: "featured"
+        royaltyPercentage:
+          type: integer
+          format: float
+          example: 15.0
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - artistId
+        - contributionType
 
     Purchase:
       type: object
@@ -737,76 +335,1470 @@ components:
         id:
           type: string
           format: uuid
-        user_id:
+        userId:
           type: string
           format: uuid
-        song_id:
+        purchasePrice:
+          type: integer
+          format: integer
+          example: 129
+        currency:
           type: string
-          format: uuid
-        album_id:
+          example: "USD"
+        paymentStatus:
           type: string
-          format: uuid
-        created_at:
+          example: "completed"
+        purchasedAt:
           type: string
           format: date-time
-        updated_at:
-          type: string
-          format: date-time
+      required:
+        - userId
+        - purchasePrice
+        - currency
+        - paymentStatus
 
-    Tip:
+    Playlist:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        user_id:
+        userId:
           type: string
           format: uuid
-        artist_id:
+        title:
           type: string
-          format: uuid
-        amount:
-          type: number
-          format: float
-        message:
+          example: "My Favorite Songs"
+        description:
           type: string
-
-    LoginResponse:
-      type: object
-      properties:
-        token:
+          example: "Songs I love to listen to"
+        coverImageUrl:
           type: string
-        user:
-          $ref: '#/components/schemas/User'
+          format: uri
+          example: "https://cdn.musicapp.com/playlists/2001/cover.jpg"
+        isPublic:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+        - title
 
     Error:
       type: object
-      required:
-        - message
-        - error_code
       properties:
-        error_code:
-          type: string
+        code:
+          type: integer
+          example: 404
         message:
           type: string
-  responses:
-        BadRequestError:
-          description: Invalid input
+          example: "Resource not found"
+        details:
+          type: string
+          example: "The requested song was not found"
+      required:
+        - code
+        - message
+
+paths:
+  # Authentication
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: User login credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Successful login
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        InternalServerError:
-          description: Server error
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized, invalid credentials
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        NotFound:
-          description: Resource not found
+                $ref: '#/components/schemas/Error'
+
+  # Users
+  /users:
+    get:
+      tags:
+        - Users
+      summary: List all users
+      security:
+        - BearerAuth: []
+       # - OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: A list of users
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-security:
-    - BearerAuth: [ ]
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    put:
+      tags:
+        - Users
+      summary: Update user
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: User deleted
+        '403':
+          description: Forbidden
+
+  # Artists
+  /artists:
+    get:
+      tags:
+        - Artists
+      summary: List all artists
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - name: verified
+          in: query
+          description: Filter by verified status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A list of artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+    post:
+      tags:
+        - Artists
+      summary: Create a new artist profile
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '201':
+          description: Artist created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '400':
+          description: Bad request
+
+  /artists/{artistId}:
+    get:
+      tags:
+        - Artists
+      summary: Get artist by ID
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+      responses:
+        '200':
+          description: Artist details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: Artist not found
+    put:
+      tags:
+        - Artists
+      summary: Update artist
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '200':
+          description: Artist updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '403':
+          description: Forbidden
+
+  /artists/{artistId}/songs:
+    get:
+      tags:
+        - Artists
+        - Songs
+      summary: Get artist's songs
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of artist's songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '404':
+          description: Artist not found
+
+  # Songs
+  /songs:
+    get:
+      tags:
+        - Songs
+      summary: List all songs
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - name: genre
+          in: query
+          description: Filter by genre ID
+          schema:
+            type: string
+        - name: artist
+          in: query
+          description: Filter by artist ID
+          schema:
+            type: string
+        - name: album
+          in: query
+          description: Filter by album ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+    post:
+      tags:
+        - Songs
+      summary: Create a new song
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+      responses:
+        '201':
+          description: Song created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        '400':
+          description: Bad request
+
+  /songs/{songId}:
+    get:
+      tags:
+        - Songs
+      summary: Get song by ID
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '200':
+          description: Song details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        '404':
+          description: Song not found
+    put:
+      tags:
+        - Songs
+      summary: Update song
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+      responses:
+        '200':
+          description: Song updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - Songs
+      summary: Delete song
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '204':
+          description: Song deleted
+        '403':
+          description: Forbidden
+
+  /songs/{songId}/contributors:
+    get:
+      tags:
+        - Songs
+      summary: Get song contributors
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '200':
+          description: List of contributors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contributor'
+    post:
+      tags:
+        - Songs
+      summary: Add contributor to song
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contributor'
+      responses:
+        '201':
+          description: Contributor added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contributor'
+        '400':
+          description: Bad request
+
+  # Albums
+  /albums:
+    get:
+      tags:
+        - Albums
+      summary: List all albums
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - name: artist
+          in: query
+          description: Filter by artist ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A list of albums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Album'
+    post:
+      tags:
+        - Albums
+      summary: Create a new album
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Album'
+      responses:
+        '201':
+          description: Album created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Bad request
+
+  /albums/{albumId}:
+    get:
+      tags:
+        - Albums
+      summary: Get album by ID
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '200':
+          description: Album details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '404':
+          description: Album not found
+    put:
+      tags:
+        - Albums
+      summary: Update album
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Album'
+      responses:
+        '200':
+          description: Album updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - Albums
+      summary: Delete album
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '204':
+          description: Album deleted
+        '403':
+          description: Forbidden
+
+  /albums/{albumId}/songs:
+    get:
+      tags:
+        - Albums
+        - Songs
+      summary: Get album's songs
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '200':
+          description: List of album's songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '404':
+          description: Album not found
+
+  /albums/{albumId}/contributors:
+    get:
+      tags:
+        - Albums
+      summary: Get album contributors
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '200':
+          description: List of contributors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contributor'
+    post:
+      tags:
+        - Albums
+      summary: Add contributor to album
+      security:
+        - BearerAuth: []
+        - OAuth2: [artist:write]
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contributor'
+      responses:
+        '201':
+          description: Contributor added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contributor'
+        '400':
+          description: Bad request
+
+  # Genres
+  /genres:
+    get:
+      tags:
+        - Genres
+      summary: List all genres
+      responses:
+        '200':
+          description: A list of genres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Genre'
+
+  /genres/{genreId}:
+    get:
+      tags:
+        - Genres
+      summary: Get genre by ID
+      parameters:
+        - $ref: '#/components/parameters/genreId'
+      responses:
+        '200':
+          description: Genre details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Genre'
+        '404':
+          description: Genre not found
+
+  # User Library
+  /users/{userId}/library/songs:
+    get:
+      tags:
+        - Library
+      summary: Get user's purchased songs
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: List of purchased songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '403':
+          description: Forbidden
+
+  /users/{userId}/library/albums:
+    get:
+      tags:
+        - Library
+      summary: Get user's purchased albums
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: List of purchased albums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Album'
+        '403':
+          description: Forbidden
+
+  /users/{userId}/library/purchases:
+    get:
+      tags:
+        - Library
+      summary: Get user's purchase history
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of purchases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+        '403':
+          description: Forbidden
+
+  # Purchases
+  /purchases/songs:
+    post:
+      tags:
+        - Purchases
+      summary: Purchase a song
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                songId:
+                  type: string
+                  format: uuid
+                paymentMethodId:
+                  type: string
+                  description: Stripe payment method ID
+              required:
+                - userId
+                - songId
+                - paymentMethodId
+      responses:
+        '201':
+          description: Purchase completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '400':
+          description: Bad request
+
+  /purchases/albums:
+    post:
+      tags:
+        - Purchases
+      summary: Purchase an album
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                albumId:
+                  type: string
+                  format: uuid
+                paymentMethodId:
+                  type: string
+              required:
+                - userId
+                - albumId
+                - paymentMethodId
+      responses:
+        '201':
+          description: Purchase completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '400':
+          description: Bad request
+
+  # Playlists
+  /users/{userId}/playlists:
+    get:
+      tags:
+        - Playlists
+      summary: Get user's playlists
+      security:
+        - BearerAuth: []
+        #- OAuth2: [user:read]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: List of playlists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Playlist'
+        '403':
+          description: Forbidden
+    post:
+      tags:
+        - Playlists
+      summary: Create a new playlist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Playlist'
+      responses:
+        '201':
+          description: Playlist created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Bad request
+
+  /playlists/{playlistId}:
+    get:
+      tags:
+        - Playlists
+      summary: Get playlist by ID
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+      responses:
+        '200':
+          description: Playlist details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '404':
+          description: Playlist not found
+    put:
+      tags:
+        - Playlists
+      summary: Update playlist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Playlist'
+      responses:
+        '200':
+          description: Playlist updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - Playlists
+      summary: Delete playlist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+      responses:
+        '204':
+          description: Playlist deleted
+        '403':
+          description: Forbidden
+
+  /playlists/{playlistId}/songs:
+    get:
+      tags:
+        - Playlists
+      summary: Get playlist songs
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+      responses:
+        '200':
+          description: List of songs in playlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '404':
+          description: Playlist not found
+    post:
+      tags:
+        - Playlists
+      summary: Add song to playlist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                songId:
+                  type: string
+                  format: uuid
+              required:
+                - songId
+      responses:
+        '201':
+          description: Song added to playlist
+        '400':
+          description: Bad request
+
+  /playlists/{playlistId}/songs/{songId}:
+    delete:
+      tags:
+        - Playlists
+      summary: Remove song from playlist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/playlistId'
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '204':
+          description: Song removed from playlist
+        '403':
+          description: Forbidden
+
+  # Streaming
+  /streams:
+    post:
+      tags:
+        - Streaming
+      summary: Record a stream
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                songId:
+                  type: string
+                  format: uuid
+                isPreview:
+                  type: boolean
+                  default: false
+                deviceType:
+                  type: string
+                countryCode:
+                  type: string
+                  maxLength: 2
+              required:
+                - songId
+      responses:
+        '201':
+          description: Stream recorded
+        '400':
+          description: Bad request
+
+  # Tips
+  /tips:
+    post:
+      tags:
+        - Tips
+      summary: Send tip to artist
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artistId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: integer
+                  format: float
+                message:
+                  type: string
+                paymentMethodId:
+                  type: string
+              required:
+                - artistId
+                - amount
+                - paymentMethodId
+      responses:
+        '201':
+          description: Tip sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactionId:
+                    type: string
+        '400':
+          description: Bad request
+
+  # Flags
+  /flags:
+    post:
+      tags:
+        - Moderation
+      summary: Flag content
+      security:
+        - BearerAuth: []
+        - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetId:
+                  type: string
+                  format: uuid
+                targetType:
+                  type: string
+                  enum: [song, album]
+                reason:
+                  type: string
+                description:
+                  type: string
+              required:
+                - targetId
+                - targetType
+                - reason
+      responses:
+        '201':
+          description: Content flagged
+        '400':
+          description: Bad request
+
+  # Search Endpoints
+  /search:
+    get:
+      tags:
+        - Search
+      summary: Global search across all content types
+      parameters:
+        - name: query
+          in: query
+          description: Search term
+          required: true
+          schema:
+            type: string
+        - name: types
+          in: query
+          description: Comma-separated list of content types to search (songs,albums,artists,playlists,genres)
+          schema:
+            type: string
+            default: "songs,albums,artists"
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  songs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Song'
+                  albums:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Album'
+                  artists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artist'
+                  playlists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Playlist'
+                  genres:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Genre'
+                  totalResults:
+                    type: integer
+                    example: 42
+
+  /search/songs:
+    get:
+      tags:
+        - Search
+      summary: Search songs with advanced filters
+      parameters:
+        - name: query
+          in: query
+          description: Search term (title or lyrics)
+          schema:
+            type: string
+        - name: artist
+          in: query
+          description: Filter by artist name or ID
+          schema:
+            type: string
+        - name: genre
+          in: query
+          description: Filter by genre name or ID
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field (popularity,release_date,duration)
+          schema:
+            type: string
+            enum: [ popularity, release_date, duration, title ]
+            default: popularity
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [ asc, desc ]
+            default: desc
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of matching songs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Song'
+                  total:
+                    type: integer
+                    example: 25
+                  facets:
+                    type: object
+                    properties:
+                      artists:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            count:
+                              type: integer
+                      genres:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            count:
+                              type: integer
+                      albums:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            count:
+                              type: integer
+
+  /search/albums:
+    get:
+      tags:
+        - Search
+      summary: Search albums with advanced filters
+      parameters:
+        - name: query
+          in: query
+          description: Search term (album title)
+          schema:
+            type: string
+        - name: artist
+          in: query
+          description: Filter by artist name or ID
+          schema:
+            type: string
+        - name: genre
+          in: query
+          description: Filter by genre name or ID
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field (popularity,release_date,price)
+          schema:
+            type: string
+            enum: [ popularity, release_date, price, title ]
+            default: popularity
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of matching albums
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Album'
+                  total:
+                    type: integer
+
+  /search/artists:
+    get:
+      tags:
+        - Search
+      summary: Search artists with advanced filters
+      parameters:
+        - name: query
+          in: query
+          description: Search term (artist name)
+          schema:
+            type: string
+        - name: genre
+          in: query
+          description: Filter by genre name or ID
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field (popularity,listeners,name)
+          schema:
+            type: string
+            enum: [ popularity, listeners, name ]
+            default: popularity
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of matching artists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artist'
+                  total:
+                    type: integer
+
+  /search/playlists:
+    get:
+      tags:
+        - Search
+      summary: Search playlists
+      parameters:
+        - name: query
+          in: query
+          description: Search term (playlist title or description)
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: Filter by owner username or ID
+          schema:
+            type: string
+        - name: isPublic
+          in: query
+          description: Filter by public/private status
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: Sort field (popularity,created_at,updated_at)
+          schema:
+            type: string
+            enum: [ popularity, created_at, updated_at, title ]
+            default: popularity
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of matching playlists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Playlist'
+                  total:
+                    type: integer
+
+  /search/genres:
+    get:
+      tags:
+        - Search
+      summary: Search genres
+      parameters:
+        - name: query
+          in: query
+          description: Search term (genre name)
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field (popularity,name)
+          schema:
+            type: string
+            enum: [ popularity, name ]
+            default: popularity
+      responses:
+        '200':
+          description: List of matching genres
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Genre'
+                  total:
+                    type: integer
+
+  # Autocomplete
+#  /search/autocomplete:
+#    get:
+#      tags:
+#        - Search
+#      summary: Search autocomplete suggestions
+#      parameters:
+#        - name: query
+#          in: query
+#          description: Partial search term
+#          required: true
+#          schema:
+#            type: string
+#        - name: types
+#          in: query
+#          description: Comma-separated list of content types (songs,albums,artists)
+#          schema:
+#            type: string
+#            default: "songs,albums,artists"
+#        - name: limit
+#          in: query
+#          description: Maximum number of suggestions per type
+#          schema:
+#            type: integer
+#            default: 5
+#      responses:
+#        '200':
+#          description: Autocomplete suggestions
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  songs:
+#                    type: array
+#                    items:
+#                      type: object
+#                      properties:
+#                        id:
+#                          type: integer
+#                        title:
+#                          type: string
+#                        artist:
+#                          type: string
+#                  albums:
+#                    type: array
+#                    items:
+#                      type: object
+#                      properties:
+#                        id:
+#                          type: integer
+#                        title:
+#                          type: string
+#                        artist:
+#                          type: string
+#                  artists:
+#                    type: array
+#                    items:
+#                      type: object
+#                      properties:
+#                        id:
+#                          type: integer
+#                        name:
+#                          type: string

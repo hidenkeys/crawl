@@ -28,15 +28,29 @@ func ConnectDatabase() {
 func MigrateDatabase() {
 	// Perform auto migration for all necessary models
 	err := DB.AutoMigrate(
-		&models.Album{},    // Album model
-		&models.User{},     // User model
-		&models.Song{},     // Song model
-		&models.Purchase{}, // Purchase model
-		&models.SongMetrics{},
-		// Add any other models that you want to auto-migrate
+		&models.User{},
+		&models.Role{},
+		&models.Artist{},
+		&models.Genre{},
+		&models.Song{},
+		&models.Album{},
+		&models.SongContributor{},
+		&models.AlbumContributor{},
+		&models.SongPurchase{},
+		&models.AlbumPurchase{},
+		&models.UserFavorite{},
+		&models.Playlist{},
+		&models.PlaylistSong{},
+		&models.ArtistTip{},
+		&models.Stream{},
+		&models.MonthlyRoyalty{},
+		&models.ContentFlag{},
 	)
+
 	if err != nil {
-		log.Fatal("Migration failed:", err)
+		log.Fatal("Failed to migrate database. \n", err)
+		os.Exit(2)
 	}
+
 	log.Println("✅ Database migration successful")
 }

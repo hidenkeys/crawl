@@ -4,8 +4,6 @@ import (
 	"crawl/api"
 	"crawl/config"
 	"crawl/handlers"
-	"crawl/repositories"
-	"crawl/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -21,25 +19,7 @@ func main() {
 
 	db := config.DB
 
-	userRepo := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
-
-	albumRepo := repositories.NewAlbumRepository(db)
-	albumService := services.NewAlbumService(albumRepo)
-
-	purchaseRepo := repositories.NewPurchaseRepository(db)
-	purchaseService := services.NewPurchaseService(purchaseRepo)
-
-	songRepo := repositories.NewSongRepository(db)
-	songService := services.NewSongService(songRepo)
-
-	songMetricsRepo := repositories.NewSongMetricsRepository(db)
-	songMetricsService := services.NewSongMetricsService(songMetricsRepo)
-
-	tipsRepo := repositories.NewTipRepository(db)
-	tipsService := services.NewTipService(tipsRepo)
-
-	server := handlers.NewServer(db, userService, albumService, purchaseService, songService, songMetricsService, tipsService)
+	server := handlers.NewHandlers(db)
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{

@@ -1,0 +1,25 @@
+# .air.toml
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/main ."  # Build command
+bin = "tmp/main"                  # Binary output path
+full_bin = "./tmp/main"           # Command to run the binary
+exclude_dir = ["tmp", "vendor", "docs", "migrations"]  # Ignored dirs
+include_ext = ["go", "toml", "env"]  # Watch these file extensions
+exclude_regex = ["_test.go"]      # Ignore test files
+delay = 1000                      # Delay after changes (ms)
+stop_on_error = true              # Stop if build fails
+
+[log]
+time = false                      # Disable timestamps in logs
+
+[color]
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+clean_on_exit = true              # Cleanup tmp dir on exit
