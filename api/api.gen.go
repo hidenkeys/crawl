@@ -21,13 +21,34 @@ import (
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
-	OAuth2Scopes     = "OAuth2.Scopes"
+)
+
+// Defines values for FlagStatus.
+const (
+	FlagStatusActioned  FlagStatus = "actioned"
+	FlagStatusDismissed FlagStatus = "dismissed"
+	FlagStatusPending   FlagStatus = "pending"
+	FlagStatusReviewed  FlagStatus = "reviewed"
+)
+
+// Defines values for FlagTargetType.
+const (
+	FlagTargetTypeAlbum FlagTargetType = "album"
+	FlagTargetTypeSong  FlagTargetType = "song"
 )
 
 // Defines values for PostFlagsJSONBodyTargetType.
 const (
 	PostFlagsJSONBodyTargetTypeAlbum PostFlagsJSONBodyTargetType = "album"
 	PostFlagsJSONBodyTargetTypeSong  PostFlagsJSONBodyTargetType = "song"
+)
+
+// Defines values for PostFlagsFlagsIdReviewJSONBodyStatus.
+const (
+	PostFlagsFlagsIdReviewJSONBodyStatusActioned  PostFlagsFlagsIdReviewJSONBodyStatus = "actioned"
+	PostFlagsFlagsIdReviewJSONBodyStatusDismissed PostFlagsFlagsIdReviewJSONBodyStatus = "dismissed"
+	PostFlagsFlagsIdReviewJSONBodyStatusPending   PostFlagsFlagsIdReviewJSONBodyStatus = "pending"
+	PostFlagsFlagsIdReviewJSONBodyStatusReviewed  PostFlagsFlagsIdReviewJSONBodyStatus = "reviewed"
 )
 
 // Defines values for GetSearchAlbumsParamsSort.
@@ -81,6 +102,7 @@ type Album struct {
 	Description   *string             `json:"description,omitempty"`
 	Id            *openapi_types.UUID `json:"id,omitempty"`
 	IsFlagged     *bool               `json:"is_flagged,omitempty"`
+	Likes         *float32            `json:"likes,omitempty"`
 	Price         *int                `json:"price,omitempty"`
 	ReleaseDate   *openapi_types.Date `json:"releaseDate,omitempty"`
 	Title         string              `json:"title"`
@@ -105,6 +127,7 @@ type Contributor struct {
 	ContributionType  string             `json:"contributionType"`
 	CreatedAt         *time.Time         `json:"createdAt,omitempty"`
 	RoyaltyPercentage *int               `json:"royaltyPercentage,omitempty"`
+	UpdatedAt         *time.Time         `json:"updatedAt,omitempty"`
 }
 
 // Error defines model for Error.
@@ -113,6 +136,39 @@ type Error struct {
 	Details *string `json:"details,omitempty"`
 	Message string  `json:"message"`
 }
+
+// Flag defines model for Flag.
+type Flag struct {
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Description Detailed explanation of the flag
+	Description *string `json:"description,omitempty"`
+
+	// Id Auto-generated unique identifier
+	Id *openapi_types.UUID `json:"id,omitempty"`
+
+	// Reason Category of the violation
+	Reason string `json:"reason"`
+
+	// ReporterUserId ID of the user reporting the content
+	ReporterUserId openapi_types.UUID `json:"reporter_user_id"`
+
+	// Status Current status of the flag
+	Status FlagStatus `json:"status"`
+
+	// TargetId ID of the flagged content (song or album)
+	TargetId openapi_types.UUID `json:"target_id"`
+
+	// TargetType Type of content being flagged
+	TargetType FlagTargetType `json:"target_type"`
+	UpdatedAt  *time.Time     `json:"updated_at,omitempty"`
+}
+
+// FlagStatus Current status of the flag
+type FlagStatus string
+
+// FlagTargetType Type of content being flagged
+type FlagTargetType string
 
 // Genre defines model for Genre.
 type Genre struct {
@@ -173,9 +229,9 @@ type User struct {
 	Email           openapi_types.Email `json:"email"`
 	FirstName       string              `json:"firstName"`
 	Id              *openapi_types.UUID `json:"id,omitempty"`
-	IsArtist        bool                `json:"isArtist"`
+	IsArtist        *bool               `json:"isArtist,omitempty"`
 	LastName        string              `json:"lastName"`
-	Password        string              `json:"password"`
+	Password        *string             `json:"password,omitempty"`
 	PhoneNumber     *string             `json:"phoneNumber,omitempty"`
 	ProfileImageUrl *string             `json:"profileImageUrl,omitempty"`
 	UpdatedAt       *time.Time          `json:"updatedAt,omitempty"`
@@ -187,6 +243,9 @@ type AlbumId = openapi_types.UUID
 
 // ArtistId defines model for artistId.
 type ArtistId = openapi_types.UUID
+
+// FlagsId defines model for flagsId.
+type FlagsId = openapi_types.UUID
 
 // GenreId defines model for genreId.
 type GenreId = openapi_types.UUID
@@ -239,6 +298,11 @@ type GetArtistsArtistIdSongsParams struct {
 	Limit *Limit `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// PostCreateAdminJSONBody defines parameters for PostCreateAdmin.
+type PostCreateAdminJSONBody struct {
+	UserId *openapi_types.UUID `json:"userId,omitempty"`
+}
+
 // PostFlagsJSONBody defines parameters for PostFlags.
 type PostFlagsJSONBody struct {
 	Description *string                     `json:"description,omitempty"`
@@ -249,6 +313,14 @@ type PostFlagsJSONBody struct {
 
 // PostFlagsJSONBodyTargetType defines parameters for PostFlags.
 type PostFlagsJSONBodyTargetType string
+
+// PostFlagsFlagsIdReviewJSONBody defines parameters for PostFlagsFlagsIdReview.
+type PostFlagsFlagsIdReviewJSONBody struct {
+	Status *PostFlagsFlagsIdReviewJSONBodyStatus `json:"status,omitempty"`
+}
+
+// PostFlagsFlagsIdReviewJSONBodyStatus defines parameters for PostFlagsFlagsIdReview.
+type PostFlagsFlagsIdReviewJSONBodyStatus string
 
 // PostLoginJSONBody defines parameters for PostLogin.
 type PostLoginJSONBody struct {
@@ -469,8 +541,14 @@ type PostArtistsJSONRequestBody = Artist
 // PutArtistsArtistIdJSONRequestBody defines body for PutArtistsArtistId for application/json ContentType.
 type PutArtistsArtistIdJSONRequestBody = Artist
 
+// PostCreateAdminJSONRequestBody defines body for PostCreateAdmin for application/json ContentType.
+type PostCreateAdminJSONRequestBody PostCreateAdminJSONBody
+
 // PostFlagsJSONRequestBody defines body for PostFlags for application/json ContentType.
 type PostFlagsJSONRequestBody PostFlagsJSONBody
+
+// PostFlagsFlagsIdReviewJSONRequestBody defines body for PostFlagsFlagsIdReview for application/json ContentType.
+type PostFlagsFlagsIdReviewJSONRequestBody PostFlagsFlagsIdReviewJSONBody
 
 // PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
 type PostLoginJSONRequestBody PostLoginJSONBody
@@ -552,9 +630,24 @@ type ServerInterface interface {
 	// Get artist's songs
 	// (GET /artists/{artistId}/songs)
 	GetArtistsArtistIdSongs(c *fiber.Ctx, artistId ArtistId, params GetArtistsArtistIdSongsParams) error
+	// Create An admin
+	// (POST /createAdmin)
+	PostCreateAdmin(c *fiber.Ctx) error
+	// Flag content
+	// (GET /flags)
+	GetFlags(c *fiber.Ctx) error
 	// Flag content
 	// (POST /flags)
 	PostFlags(c *fiber.Ctx) error
+	// Get flagged content
+	// (GET /flags/{flagsId})
+	GetFlagsFlagsId(c *fiber.Ctx, flagsId FlagsId) error
+	// Review a flagged content
+	// (POST /flags/{flagsId}/review)
+	PostFlagsFlagsIdReview(c *fiber.Ctx, flagsId FlagsId) error
+	// Flag content
+	// (POST /flags/{songId})
+	PostFlagsSongId(c *fiber.Ctx, songId SongId) error
 	// List all genres
 	// (GET /genres)
 	GetGenres(c *fiber.Ctx) error
@@ -715,8 +808,6 @@ func (siw *ServerInterfaceWrapper) PostAlbums(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PostAlbums(c)
 }
 
@@ -734,8 +825,6 @@ func (siw *ServerInterfaceWrapper) DeleteAlbumsAlbumId(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
 
 	return siw.Handler.DeleteAlbumsAlbumId(c, albumId)
 }
@@ -771,8 +860,6 @@ func (siw *ServerInterfaceWrapper) PutAlbumsAlbumId(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PutAlbumsAlbumId(c, albumId)
 }
 
@@ -806,8 +893,6 @@ func (siw *ServerInterfaceWrapper) PostAlbumsAlbumIdContributors(c *fiber.Ctx) e
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
 
 	return siw.Handler.PostAlbumsAlbumIdContributors(c, albumId)
 }
@@ -871,8 +956,6 @@ func (siw *ServerInterfaceWrapper) PostArtists(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PostArtists(c)
 }
 
@@ -906,8 +989,6 @@ func (siw *ServerInterfaceWrapper) PutArtistsArtistId(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
 
 	return siw.Handler.PutArtistsArtistId(c, artistId)
 }
@@ -951,14 +1032,82 @@ func (siw *ServerInterfaceWrapper) GetArtistsArtistIdSongs(c *fiber.Ctx) error {
 	return siw.Handler.GetArtistsArtistIdSongs(c, artistId, params)
 }
 
+// PostCreateAdmin operation middleware
+func (siw *ServerInterfaceWrapper) PostCreateAdmin(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostCreateAdmin(c)
+}
+
+// GetFlags operation middleware
+func (siw *ServerInterfaceWrapper) GetFlags(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetFlags(c)
+}
+
 // PostFlags operation middleware
 func (siw *ServerInterfaceWrapper) PostFlags(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.PostFlags(c)
+}
+
+// GetFlagsFlagsId operation middleware
+func (siw *ServerInterfaceWrapper) GetFlagsFlagsId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "flagsId" -------------
+	var flagsId FlagsId
+
+	err = runtime.BindStyledParameter("simple", false, "flagsId", c.Params("flagsId"), &flagsId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter flagsId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetFlagsFlagsId(c, flagsId)
+}
+
+// PostFlagsFlagsIdReview operation middleware
+func (siw *ServerInterfaceWrapper) PostFlagsFlagsIdReview(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "flagsId" -------------
+	var flagsId FlagsId
+
+	err = runtime.BindStyledParameter("simple", false, "flagsId", c.Params("flagsId"), &flagsId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter flagsId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostFlagsFlagsIdReview(c, flagsId)
+}
+
+// PostFlagsSongId operation middleware
+func (siw *ServerInterfaceWrapper) PostFlagsSongId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "songId" -------------
+	var songId SongId
+
+	err = runtime.BindStyledParameter("simple", false, "songId", c.Params("songId"), &songId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter songId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostFlagsSongId(c, songId)
 }
 
 // GetGenres operation middleware
@@ -1004,8 +1153,6 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(c *fiber.Ctx) error
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.DeletePlaylistsPlaylistId(c, playlistId)
 }
 
@@ -1039,8 +1186,6 @@ func (siw *ServerInterfaceWrapper) PutPlaylistsPlaylistId(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
 
 	return siw.Handler.PutPlaylistsPlaylistId(c, playlistId)
 }
@@ -1076,8 +1221,6 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx) er
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.PostPlaylistsPlaylistIdSongs(c, playlistId)
 }
 
@@ -1104,8 +1247,6 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdSongsSongId(c *fiber
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.DeletePlaylistsPlaylistIdSongsSongId(c, playlistId, songId)
 }
 
@@ -1114,8 +1255,6 @@ func (siw *ServerInterfaceWrapper) PostPurchasesAlbums(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.PostPurchasesAlbums(c)
 }
 
@@ -1123,8 +1262,6 @@ func (siw *ServerInterfaceWrapper) PostPurchasesAlbums(c *fiber.Ctx) error {
 func (siw *ServerInterfaceWrapper) PostPurchasesSongs(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
 
 	return siw.Handler.PostPurchasesSongs(c)
 }
@@ -1506,8 +1643,6 @@ func (siw *ServerInterfaceWrapper) PostSongs(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PostSongs(c)
 }
 
@@ -1525,8 +1660,6 @@ func (siw *ServerInterfaceWrapper) DeleteSongsSongId(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
 
 	return siw.Handler.DeleteSongsSongId(c, songId)
 }
@@ -1562,8 +1695,6 @@ func (siw *ServerInterfaceWrapper) PutSongsSongId(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PutSongsSongId(c, songId)
 }
 
@@ -1598,8 +1729,6 @@ func (siw *ServerInterfaceWrapper) PostSongsSongIdContributors(c *fiber.Ctx) err
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"artist:write"})
-
 	return siw.Handler.PostSongsSongIdContributors(c, songId)
 }
 
@@ -1608,8 +1737,6 @@ func (siw *ServerInterfaceWrapper) PostStreams(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.PostStreams(c)
 }
 
@@ -1617,8 +1744,6 @@ func (siw *ServerInterfaceWrapper) PostStreams(c *fiber.Ctx) error {
 func (siw *ServerInterfaceWrapper) PostTips(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
 
 	return siw.Handler.PostTips(c)
 }
@@ -1677,8 +1802,6 @@ func (siw *ServerInterfaceWrapper) DeleteUsersUserId(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.DeleteUsersUserId(c, userId)
 }
 
@@ -1696,8 +1819,6 @@ func (siw *ServerInterfaceWrapper) GetUsersUserId(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:read"})
 
 	return siw.Handler.GetUsersUserId(c, userId)
 }
@@ -1717,8 +1838,6 @@ func (siw *ServerInterfaceWrapper) PutUsersUserId(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
-
 	return siw.Handler.PutUsersUserId(c, userId)
 }
 
@@ -1737,8 +1856,6 @@ func (siw *ServerInterfaceWrapper) GetUsersUserIdLibraryAlbums(c *fiber.Ctx) err
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:read"})
-
 	return siw.Handler.GetUsersUserIdLibraryAlbums(c, userId)
 }
 
@@ -1756,8 +1873,6 @@ func (siw *ServerInterfaceWrapper) GetUsersUserIdLibraryPurchases(c *fiber.Ctx) 
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:read"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetUsersUserIdLibraryPurchasesParams
@@ -1800,8 +1915,6 @@ func (siw *ServerInterfaceWrapper) GetUsersUserIdLibrarySongs(c *fiber.Ctx) erro
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:read"})
-
 	return siw.Handler.GetUsersUserIdLibrarySongs(c, userId)
 }
 
@@ -1820,8 +1933,6 @@ func (siw *ServerInterfaceWrapper) GetUsersUserIdPlaylists(c *fiber.Ctx) error {
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:read"})
-
 	return siw.Handler.GetUsersUserIdPlaylists(c, userId)
 }
 
@@ -1839,8 +1950,6 @@ func (siw *ServerInterfaceWrapper) PostUsersUserIdPlaylists(c *fiber.Ctx) error 
 	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(OAuth2Scopes, []string{"user:write"})
 
 	return siw.Handler.PostUsersUserIdPlaylists(c, userId)
 }
@@ -1892,7 +2001,17 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/artists/:artistId/songs", wrapper.GetArtistsArtistIdSongs)
 
+	router.Post(options.BaseURL+"/createAdmin", wrapper.PostCreateAdmin)
+
+	router.Get(options.BaseURL+"/flags", wrapper.GetFlags)
+
 	router.Post(options.BaseURL+"/flags", wrapper.PostFlags)
+
+	router.Get(options.BaseURL+"/flags/:flagsId", wrapper.GetFlagsFlagsId)
+
+	router.Post(options.BaseURL+"/flags/:flagsId/review", wrapper.PostFlagsFlagsIdReview)
+
+	router.Post(options.BaseURL+"/flags/:songId", wrapper.PostFlagsSongId)
 
 	router.Get(options.BaseURL+"/genres", wrapper.GetGenres)
 
@@ -1971,73 +2090,84 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"fwMAAP//YJrE+VJ9AAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

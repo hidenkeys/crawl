@@ -70,6 +70,14 @@ components:
       schema:
         type: string
         format: uuid
+    flagsId:
+      name: flagsId
+      in: path
+      description: ID of the flag
+      required: true
+      schema:
+        type: string
+        format: uuid
     page:
       name: page
       in: query
@@ -103,12 +111,68 @@ components:
 #            artist:write: Modify artist data
 
   schemas:
+    Flag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          description: Auto-generated unique identifier
+        reporter_user_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          description: ID of the user reporting the content
+        target_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          description: ID of the flagged content (song or album)
+        target_type:
+          type: string
+          enum: [ song, album ]
+          example: "song"
+          description: Type of content being flagged
+        reason:
+          type: string
+          maxLength: 100
+          example: "copyright_violation"
+          description: Category of the violation
+        description:
+          type: string
+          example: "This song uses unauthorized samples from my work"
+          description: Detailed explanation of the flag
+        status:
+          type: string
+          enum: [ pending, reviewed, dismissed, actioned ]
+          default: "pending"
+          example: "pending"
+          description: Current status of the flag
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2023-07-20T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2023-07-20T12:05:00Z"
+      required:
+        - reporter_user_id
+        - target_id
+        - target_type
+        - reason
+        - status
     User:
       type: object
       properties:
         id:
           type: string
           format: uuid
+          readOnly: true
         firstName:
           type: string
           example: John
@@ -125,6 +189,7 @@ components:
         password:
           type: string
           example: john@example.com
+          writeOnly: true
         phoneNumber:
           type: string
           example: "+1234567890"
@@ -138,12 +203,15 @@ components:
         isArtist:
           type: boolean
           example: false
+          readOnly: true
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - firstName
         - lastName
@@ -158,6 +226,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         userId:
           type: string
           format: uuid
@@ -167,19 +236,24 @@ components:
         verified:
           type: boolean
           example: true
+          readOnly: true
         walletBalance:
           type: integer
           format: float
           example: 1250.50
+          readOnly: true
         monthlyListeners:
           type: integer
           example: 125000
+          readOnly: true
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - userId
         - artistName
@@ -190,6 +264,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         title:
           type: string
           example: "Awesome Song"
@@ -233,14 +308,18 @@ components:
         playsCount:
           type: integer
           example: 1250000
+          readOnly: true
         is_flagged:
           type: boolean
+          readOnly: true
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - title
         - artistId
@@ -257,6 +336,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         title:
           type: string
           example: "Greatest Hits"
@@ -272,6 +352,10 @@ components:
           example: 9.99
         is_flagged:
           type: boolean
+          readOnly: true
+        likes:
+          type: number
+          readOnly: true
         coverImageUrl:
           type: string
           format: uri
@@ -283,9 +367,11 @@ components:
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - title
         - artistId
@@ -296,6 +382,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         name:
           type: string
           example: "Rock"
@@ -325,6 +412,11 @@ components:
         createdAt:
           type: string
           format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
       required:
         - artistId
         - contributionType
@@ -335,6 +427,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         userId:
           type: string
           format: uuid
@@ -351,6 +444,7 @@ components:
         purchasedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - userId
         - purchasePrice
@@ -363,6 +457,7 @@ components:
         id:
           type: string
           format: uuid
+          readOnly: true
         userId:
           type: string
           format: uuid
@@ -382,9 +477,11 @@ components:
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
       required:
         - userId
         - title
@@ -436,10 +533,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  token:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
                     type: string
-                  user:
-                    $ref: '#/components/schemas/User'
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized, invalid credentials
           content:
@@ -465,9 +571,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      userList:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
         '403':
           description: Forbidden
     post:
@@ -486,7 +604,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
         '400':
           description: Bad request
 
@@ -497,7 +627,7 @@ paths:
       summary: Get user by ID
       security:
         - BearerAuth: []
-        - OAuth2: [user:read]
+        #- OAuth2: [user:read]
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -506,7 +636,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
         '404':
           description: User not found
     put:
@@ -515,7 +657,7 @@ paths:
       summary: Update user
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+        #- OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/userId'
       requestBody:
@@ -530,7 +672,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
         '403':
           description: Forbidden
     delete:
@@ -539,12 +693,25 @@ paths:
       summary: Delete user
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+        #- OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
         '204':
           description: User deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '403':
           description: Forbidden
 
@@ -568,16 +735,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Artist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/Artist'
     post:
       tags:
         - Artists
       summary: Create a new artist profile
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+        #- OAuth2: [artist:write]
       requestBody:
         required: true
         content:
@@ -590,7 +769,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Artist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        $ref: '#/components/schemas/Artist'
         '400':
           description: Bad request
 
@@ -607,7 +798,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Artist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        $ref: '#/components/schemas/Artist'
         '404':
           description: Artist not found
     put:
@@ -616,7 +819,7 @@ paths:
       summary: Update artist
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+      #  - OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/artistId'
       requestBody:
@@ -631,7 +834,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Artist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        $ref: '#/components/schemas/Artist'
         '403':
           description: Forbidden
 
@@ -651,9 +866,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artistList:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
         '404':
           description: Artist not found
 
@@ -687,16 +914,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      songs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
     post:
       tags:
         - Songs
       summary: Create a new song
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+     #   - OAuth2: [artist:write]
       requestBody:
         required: true
         content:
@@ -709,7 +948,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      song:
+                        $ref: '#/components/schemas/Song'
         '400':
           description: Bad request
 
@@ -726,7 +977,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      song:
+                        $ref: '#/components/schemas/Song'
         '404':
           description: Song not found
     put:
@@ -735,7 +998,7 @@ paths:
       summary: Update song
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+    #    - OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/songId'
       requestBody:
@@ -750,7 +1013,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        $ref: '#/components/schemas/Song'
         '403':
           description: Forbidden
     delete:
@@ -759,12 +1034,25 @@ paths:
       summary: Delete song
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+   #     - OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/songId'
       responses:
         '204':
           description: Song deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '403':
           description: Forbidden
 
@@ -781,16 +1069,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Contributor'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      contributors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Contributor'
     post:
       tags:
         - Songs
       summary: Add contributor to song
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+   #- OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/songId'
       requestBody:
@@ -805,7 +1105,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Contributor'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      contributor:
+                        $ref: '#/components/schemas/Contributor'
         '400':
           description: Bad request
 
@@ -830,16 +1142,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      albums:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Album'
     post:
       tags:
         - Albums
       summary: Create a new album
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+       # - OAuth2: [artist:write]
       requestBody:
         required: true
         content:
@@ -852,7 +1176,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Album'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      album:
+                        $ref: '#/components/schemas/Album'
         '400':
           description: Bad request
 
@@ -869,7 +1205,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Album'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      album:
+                        $ref: '#/components/schemas/Album'
         '404':
           description: Album not found
     put:
@@ -878,7 +1226,7 @@ paths:
       summary: Update album
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+     #   - OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/albumId'
       requestBody:
@@ -893,7 +1241,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Album'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      album:
+                        $ref: '#/components/schemas/Album'
         '403':
           description: Forbidden
     delete:
@@ -902,12 +1262,25 @@ paths:
       summary: Delete album
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+    #    - OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/albumId'
       responses:
         '204':
           description: Album deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '403':
           description: Forbidden
 
@@ -925,9 +1298,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      albumSongs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
         '404':
           description: Album not found
 
@@ -944,16 +1329,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Contributor'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      albumContributors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Contributor'
     post:
       tags:
         - Albums
       summary: Add contributor to album
       security:
         - BearerAuth: []
-        - OAuth2: [artist:write]
+        #- OAuth2: [artist:write]
       parameters:
         - $ref: '#/components/parameters/albumId'
       requestBody:
@@ -968,7 +1365,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Contributor'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      contributor:
+                        $ref: '#/components/schemas/Contributor'
         '400':
           description: Bad request
 
@@ -984,9 +1393,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Genre'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      genres:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Genre'
 
   /genres/{genreId}:
     get:
@@ -1001,7 +1422,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Genre'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      genre:
+                        $ref: '#/components/schemas/Genre'
         '404':
           description: Genre not found
 
@@ -1013,7 +1446,7 @@ paths:
       summary: Get user's purchased songs
       security:
         - BearerAuth: []
-        - OAuth2: [user:read]
+   #     - OAuth2: [user:read]
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -1022,9 +1455,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      songs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
         '403':
           description: Forbidden
 
@@ -1035,7 +1480,7 @@ paths:
       summary: Get user's purchased albums
       security:
         - BearerAuth: []
-        - OAuth2: [user:read]
+   #     - OAuth2: [user:read]
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -1044,9 +1489,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      albums:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Album'
         '403':
           description: Forbidden
 
@@ -1057,7 +1514,7 @@ paths:
       summary: Get user's purchase history
       security:
         - BearerAuth: []
-        - OAuth2: [user:read]
+  # - OAuth2: [user:read]
       parameters:
         - $ref: '#/components/parameters/userId'
         - $ref: '#/components/parameters/page'
@@ -1068,9 +1525,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Purchase'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      purchases:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Purchase'
         '403':
           description: Forbidden
 
@@ -1082,7 +1551,7 @@ paths:
       summary: Purchase a song
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+     #   - OAuth2: [user:write]
       requestBody:
         required: true
         content:
@@ -1109,7 +1578,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      purchase:
+                        $ref: '#/components/schemas/Purchase'
         '400':
           description: Bad request
 
@@ -1120,7 +1601,7 @@ paths:
       summary: Purchase an album
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+     #   - OAuth2: [user:write]
       requestBody:
         required: true
         content:
@@ -1146,7 +1627,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      purchase:
+                        $ref: '#/components/schemas/Purchase'
         '400':
           description: Bad request
 
@@ -1167,9 +1660,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Playlist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      playlists:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Playlist'
         '403':
           description: Forbidden
     post:
@@ -1178,7 +1683,7 @@ paths:
       summary: Create a new playlist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+    #    - OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/userId'
       requestBody:
@@ -1193,7 +1698,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Playlist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      playlist:
+                        $ref: '#/components/schemas/Playlist'
         '400':
           description: Bad request
 
@@ -1210,7 +1727,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Playlist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      playlist:
+                        $ref: '#/components/schemas/Playlist'
         '404':
           description: Playlist not found
     put:
@@ -1219,7 +1748,7 @@ paths:
       summary: Update playlist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+        #- OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/playlistId'
       requestBody:
@@ -1234,7 +1763,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Playlist'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      playlist:
+                        $ref: '#/components/schemas/Playlist'
         '403':
           description: Forbidden
     delete:
@@ -1243,12 +1784,25 @@ paths:
       summary: Delete playlist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+  #      - OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/playlistId'
       responses:
         '204':
           description: Playlist deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '403':
           description: Forbidden
 
@@ -1265,9 +1819,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Song'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
         '404':
           description: Playlist not found
     post:
@@ -1276,7 +1842,7 @@ paths:
       summary: Add song to playlist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+  # - OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/playlistId'
       requestBody:
@@ -1294,6 +1860,19 @@ paths:
       responses:
         '201':
           description: Song added to playlist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '400':
           description: Bad request
 
@@ -1304,13 +1883,26 @@ paths:
       summary: Remove song from playlist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+      #  - OAuth2: [user:write]
       parameters:
         - $ref: '#/components/parameters/playlistId'
         - $ref: '#/components/parameters/songId'
       responses:
         '204':
           description: Song removed from playlist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '403':
           description: Forbidden
 
@@ -1322,7 +1914,7 @@ paths:
       summary: Record a stream
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+     #   - OAuth2: [user:write]
       requestBody:
         required: true
         content:
@@ -1346,6 +1938,19 @@ paths:
       responses:
         '201':
           description: Stream recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '400':
           description: Bad request
 
@@ -1357,7 +1962,7 @@ paths:
       summary: Send tip to artist
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+    #    - OAuth2: [user:write]
       requestBody:
         required: true
         content:
@@ -1387,22 +1992,62 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                  transactionId:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
                     type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      tip:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                          transactionId:
+                            type: string
         '400':
           description: Bad request
 
   # Flags
   /flags:
+    get:
+      tags:
+        - Moderation
+      summary: Flag content
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Get all flagged content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      flags:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Flag'
+
     post:
       tags:
         - Moderation
       summary: Flag content
       security:
         - BearerAuth: []
-        - OAuth2: [user:write]
+   #     - OAuth2: [user:write]
       requestBody:
         required: true
         content:
@@ -1427,6 +2072,19 @@ paths:
       responses:
         '201':
           description: Content flagged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
         '400':
           description: Bad request
 
@@ -1459,29 +2117,41 @@ paths:
               schema:
                 type: object
                 properties:
-                  songs:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Song'
-                  albums:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Album'
-                  artists:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Artist'
-                  playlists:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Playlist'
-                  genres:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Genre'
-                  totalResults:
+                  code:
                     type: integer
-                    example: 42
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                        properties:
+                          songs:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Song'
+                          albums:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Album'
+                          artists:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Artist'
+                          playlists:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Playlist'
+                          genres:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Genre'
+                          totalResults:
+                            type: integer
+                            example: 42
 
   /search/songs:
     get:
@@ -1613,12 +2283,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Album'
-                  total:
+                  code:
                     type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                        properties:
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Album'
+                          total:
+                            type: integer
 
   /search/artists:
     get:
@@ -1653,12 +2335,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Artist'
-                  total:
+                  code:
                     type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                        properties:
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Artist'
+                          total:
+                            type: integer
 
   /search/playlists:
     get:
@@ -1698,12 +2392,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Playlist'
-                  total:
+                  code:
                     type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                        properties:
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Playlist'
+                          total:
+                            type: integer
 
   /search/genres:
     get:
@@ -1731,12 +2437,153 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Genre'
-                  total:
+                  code:
                     type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artist:
+                        type: object
+                        properties:
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Genre'
+                          total:
+                            type: integer
+
+  /createAdmin:
+    post:
+      tags:
+        - Admin
+      summary: Create An admin
+      security:
+        - BearerAuth: [ ]
+      #     - OAuth2: [user:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: List of matching genres
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+
+  /flags/{flagsId}:
+    get:
+      tags:
+        - Admin
+      summary: Get flagged content
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/flagsId'
+      responses:
+        '200':
+          description: Get flagged content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      flags:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Flag'
+
+  /flags/{songId}:
+    post:
+      tags:
+        - Admin
+      summary: Flag content
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '200':
+          description: flag a song
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+
+  /flags/{flagsId}/review:
+    post:
+      tags:
+        - Admin
+      summary: Review a flagged content
+      security:
+        - BearerAuth: [ ]
+      #     - OAuth2: [user:write]
+      parameters:
+        - $ref: '#/components/parameters/flagsId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, reviewed, dismissed, actioned]
+      responses:
+        '200':
+          description: Review content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
 
   # Autocomplete
 #  /search/autocomplete:

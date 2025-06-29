@@ -23,17 +23,20 @@ type artistService struct {
 	artistRepo repositories.IArtistRepository
 	songRepo   repositories.ISongRepository
 	userRepo   repositories.IUserRepository
+	roleRepo   repositories.IRoleRepository
 }
 
 func NewArtistService(
 	artistRepo repositories.IArtistRepository,
 	songRepo repositories.ISongRepository,
 	userRepo repositories.IUserRepository,
+	roleRepo repositories.IRoleRepository,
 ) ArtistService {
 	return &artistService{
 		artistRepo: artistRepo,
 		songRepo:   songRepo,
 		userRepo:   userRepo,
+		roleRepo:   roleRepo,
 	}
 }
 
@@ -47,13 +50,24 @@ func (s *artistService) CreateArtist(ctx context.Context, artist *models.Artist)
 	}
 
 	newArtist, err := s.artistRepo.Create(artist)
-	if err == nil {
-		err := s.userRepo.SetUserAsArtist(newArtist.UserID)
-		if err != nil {
-			log.Infof("Failed to change user isArtist to true")
-			return nil, err
-		}
-		return newArtist, nil
+	if err != nil {
+		return nil, errors.New("Artist not created")
+	}
+
+	role, err := s.roleRepo.FindByRolename("Artist")
+	if err != nil {
+		return nil, errors.New("role not found")
+	}
+
+	err = s.roleRepo.AssignRoleToUser(role.ID, newArtist.ID)
+	if err != nil {
+		return nil, errors.New("error occurred adding Role to user")
+	}
+
+	err = s.userRepo.SetUserAsArtist(newArtist.UserID)
+	if err != nil {
+		log.Infof("Failed to change user isArtist to true")
+		return nil, err
 	}
 	return nil, err
 }

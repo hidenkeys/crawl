@@ -116,6 +116,7 @@ type IRoleRepository interface {
 	AssignRoleToUser(userID, roleID uuid.UUID) error
 	RemoveRoleFromUser(userID, roleID uuid.UUID) error
 	GetUserRoles(userID uuid.UUID) ([]models.Role, error)
+	FindByRolename(name string) (*models.Role, error)
 }
 
 // IUserFavoriteRepository User Favorite

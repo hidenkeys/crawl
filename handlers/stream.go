@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handlers) PostStreams(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -38,7 +38,7 @@ func (h *Handlers) PostStreams(c *fiber.Ctx) error {
 		IsPreview: false, // default
 	}
 
-	*stream.UserID = userID
+	*stream.UserID = userDetails.userID
 
 	if streamReq.CountryCode != nil {
 		stream.CountryCode = *streamReq.CountryCode

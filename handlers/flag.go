@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handlers) PostFlags(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -45,7 +45,7 @@ func (h *Handlers) PostFlags(c *fiber.Ctx) error {
 
 	// Create the flag
 	flag := &models.ContentFlag{
-		ReporterUserID: userID,
+		ReporterUserID: userDetails.userID,
 		TargetID:       flagReq.TargetId,
 		TargetType:     string(flagReq.TargetType),
 		Reason:         flagReq.Reason,

@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handlers) PostTips(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -32,7 +32,7 @@ func (h *Handlers) PostTips(c *fiber.Ctx) error {
 	}
 
 	// Process tip payment
-	tip, err := h.Tip.SendTip(c.Context(), tipReq, userID)
+	tip, err := h.Tip.SendTip(c.Context(), tipReq, userDetails.userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
 			Code:    fiber.StatusInternalServerError,

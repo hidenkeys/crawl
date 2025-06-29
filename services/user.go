@@ -29,6 +29,7 @@ type UserService interface {
 
 type userService struct {
 	userRepo          repositories.IUserRepository
+	roleRepo          repositories.IRoleRepository
 	playlistRepo      repositories.IPlaylistRepository
 	artistRepo        repositories.IArtistRepository
 	songPurchaseRepo  repositories.ISongPurchaseRepository
@@ -37,6 +38,7 @@ type userService struct {
 
 func NewUserService(
 	userRepo repositories.IUserRepository,
+	roleRepo repositories.IRoleRepository,
 	playlistRepo repositories.IPlaylistRepository,
 	artistRepo repositories.IArtistRepository,
 	songPurchaseRepo repositories.ISongPurchaseRepository,
@@ -45,6 +47,7 @@ func NewUserService(
 ) UserService {
 	return &userService{
 		userRepo:          userRepo,
+		roleRepo:          roleRepo,
 		playlistRepo:      playlistRepo,
 		artistRepo:        artistRepo,
 		songPurchaseRepo:  songPurchaseRepo,
@@ -65,7 +68,22 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		return nil, errors.New("username already exists")
 	}
 
-	return s.userRepo.Create(user)
+	role, err := s.roleRepo.FindByRolename("Listener")
+	if err != nil {
+		return nil, errors.New("role not found")
+	}
+	newUser, err := s.userRepo.Create(user)
+	if err != nil {
+		return nil, errors.New("error occurred creating user")
+	}
+
+	err = s.roleRepo.AssignRoleToUser(role.ID, newUser.ID)
+	if err != nil {
+		return nil, errors.New("error occurred adding Role to user")
+	}
+
+	return newUser, nil
+
 }
 
 func (s *userService) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
@@ -92,7 +110,6 @@ func (s *userService) Update(ctx context.Context, userID uuid.UUID, userReq api.
 	user.Username = userReq.Username
 	user.FirstName = userReq.FirstName
 	user.LastName = userReq.LastName
-	user.IsArtist = userReq.IsArtist
 	if userReq.Bio != nil {
 		user.Bio = *userReq.Bio
 	}

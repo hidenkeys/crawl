@@ -20,7 +20,7 @@ func (h *Handlers) GetArtists(c *fiber.Ctx, params api.GetArtistsParams) error {
 }
 
 func (h *Handlers) PostArtists(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -38,7 +38,7 @@ func (h *Handlers) PostArtists(c *fiber.Ctx) error {
 
 	// Check if user already has an artist profile
 
-	_, err = h.User.GetArtistByUserId(c.Context(), userID)
+	_, err = h.User.GetArtistByUserId(c.Context(), userDetails.userID)
 	if err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
@@ -48,7 +48,7 @@ func (h *Handlers) PostArtists(c *fiber.Ctx) error {
 
 	artist := &models.Artist{
 		ArtistName: artistReq.ArtistName,
-		UserID:     userID,
+		UserID:     userDetails.userID,
 	}
 
 	if artistReq.Verified != nil {
@@ -91,7 +91,7 @@ func (h *Handlers) GetArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
 }
 
 func (h *Handlers) PutArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -116,7 +116,7 @@ func (h *Handlers) PutArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
 	}
 
 	// Verify the requesting user owns the artist profile
-	artist, err := h.User.GetArtistByUserId(c.Context(), userID)
+	artist, err := h.User.GetArtistByUserId(c.Context(), userDetails.userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(api.Error{
 			Code:    fiber.StatusNotFound,

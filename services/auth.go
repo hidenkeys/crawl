@@ -27,19 +27,20 @@ type AuthResponse struct {
 }
 
 type Claims struct {
-	UserID types.UUID `json:"user_id"`
-	Email  string     `json:"email"`
-	Roles  []string   `json:"role"`
+	UserID types.UUID    `json:"user_id"`
+	Email  string        `json:"email"`
+	Roles  []models.Role `json:"role"`
 	jwt.RegisteredClaims
 }
 
 type authService struct {
 	userRepo    repositories.IUserRepository
+	roleRepo    repositories.IRoleRepository
 	jwtSecret   string
 	tokenExpiry time.Duration
 }
 
-func NewAuthService(userRepo repositories.IUserRepository) AuthService {
+func NewAuthService(userRepo repositories.IUserRepository, roleRepo repositories.IRoleRepository) AuthService {
 	// Read JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -56,6 +57,7 @@ func NewAuthService(userRepo repositories.IUserRepository) AuthService {
 
 	return &authService{
 		userRepo:    userRepo,
+		roleRepo:    roleRepo,
 		jwtSecret:   jwtSecret,
 		tokenExpiry: tokenExpiry,
 	}
@@ -92,12 +94,17 @@ func (s *authService) Login(ctx context.Context, credentials api.PostLoginJSONBo
 
 func (s *authService) generateJWTToken(user *models.User) (string, error) {
 	// Create the claims
+	role, err := s.roleRepo.GetUserRoles(user.ID)
+	if err != nil {
+		return "", errors.New(err.Error())
+	}
+	println(role[0].ID.String())
 	claims := jwt.MapClaims{
 		"user_id": user.ID.String(),
 		"email":   user.Email,
 		"exp":     time.Now().Add(s.tokenExpiry).Unix(),
 		"iat":     time.Now().Unix(),
-		"role":    user.Roles,
+		"role":    role,
 	}
 
 	// Create token

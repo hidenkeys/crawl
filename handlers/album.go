@@ -21,7 +21,7 @@ func (h *Handlers) GetAlbums(c *fiber.Ctx, params api.GetAlbumsParams) error {
 
 func (h *Handlers) PostAlbums(c *fiber.Ctx) error {
 	// JWT authentication check
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -38,7 +38,7 @@ func (h *Handlers) PostAlbums(c *fiber.Ctx) error {
 	}
 
 	// Verify the requesting user is the artist
-	artist, err := h.Artist.GetArtistByID(c.Context(), userID)
+	artist, err := h.Artist.GetArtistByID(c.Context(), userDetails.userID)
 	if err != nil || artist.ID != albumReq.ArtistId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
@@ -104,7 +104,7 @@ func (h *Handlers) GetAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 }
 
 func (h *Handlers) PutAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -129,7 +129,7 @@ func (h *Handlers) PutAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 		})
 	}
 
-	artist, err := h.Artist.GetArtistByID(c.Context(), userID)
+	artist, err := h.Artist.GetArtistByID(c.Context(), userDetails.userID)
 	if err != nil || artist.ID != album.ArtistID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
@@ -184,7 +184,7 @@ func (h *Handlers) PutAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 }
 
 func (h *Handlers) DeleteAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -201,7 +201,7 @@ func (h *Handlers) DeleteAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 		})
 	}
 
-	artist, err := h.User.GetArtistByUserId(c.Context(), userID)
+	artist, err := h.User.GetArtistByUserId(c.Context(), userDetails.userID)
 	if err != nil || artist.ID != album.ArtistID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
@@ -244,7 +244,7 @@ func (h *Handlers) GetAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUID
 }
 
 func (h *Handlers) PostAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -269,7 +269,7 @@ func (h *Handlers) PostAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUI
 		})
 	}
 
-	artist, err := h.User.GetArtistByUserId(c.Context(), userID)
+	artist, err := h.User.GetArtistByUserId(c.Context(), userDetails.userID)
 	if err != nil || artist.ID != album.ArtistID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
