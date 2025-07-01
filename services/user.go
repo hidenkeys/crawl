@@ -81,7 +81,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		return nil, errors.New("error occurred creating user")
 	}
 
-	err = s.roleRepo.AssignRoleToUser(role.ID, newUser.ID)
+	err = s.roleRepo.AssignRoleToUser(newUser.ID, role.ID)
 	if err != nil {
 		return nil, errors.New("error occurred adding Role to user")
 	}
