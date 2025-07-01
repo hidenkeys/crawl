@@ -51,7 +51,13 @@ func (h *Handlers) PostCreateAdmin(c *fiber.Ctx) error {
 			Message: "Invalid request body",
 		})
 	}
-	// TODO complete
+	err = h.User.CreateAdminFromUser(c.Context(), *userReq.UserId)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    01,
+			Message: "Failed to assign admin role to user",
+		})
+	}
 	return c.Status(fiber.StatusOK).JSON("Done")
 
 }
