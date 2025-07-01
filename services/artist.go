@@ -59,7 +59,7 @@ func (s *artistService) CreateArtist(ctx context.Context, artist *models.Artist)
 		return nil, errors.New("role not found")
 	}
 
-	err = s.roleRepo.AssignRoleToUser(role.ID, newArtist.ID)
+	err = s.roleRepo.AssignRoleToUser(newArtist.UserID, role.ID)
 	if err != nil {
 		return nil, errors.New("error occurred adding Role to user")
 	}
