@@ -58,6 +58,10 @@ func (r *SongRepository) GetByAlbum(albumID uuid.UUID) ([]models.Song, error) {
 	return songs, err
 }
 
+func (r *SongRepository) FlagContent(songID uuid.UUID) error {
+	return r.DB.Model(&models.Song{}).Where("id = ?", songID).Update("is_flagged", true).Error
+}
+
 func (r *SongRepository) Search(query, artist, genre *string, sort, order *string, offset, limit int) ([]models.Song, error) {
 	var songs []models.Song
 	db := r.DB.Model(&models.Song{}).Preload("Artist")

@@ -1714,6 +1714,38 @@ paths:
         '400':
           description: Bad request
 
+  /users/{userId}/recent:
+    get:
+      tags:
+        - Users
+      summary: Get recently played music
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: Playlist created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      playlist:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
   /playlists/{playlistId}:
     get:
       tags:

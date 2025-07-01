@@ -66,3 +66,138 @@ func (h *Handlers) PostFlags(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(newFlag)
 }
+
+func (h *Handlers) GetFlags(c *fiber.Ctx) error {
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	isAdmin := false
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	for _, v := range detailsFromToken.roles {
+		if v.Name == "Admin" {
+			isAdmin = true
+			_ = v
+		}
+	}
+	if !isAdmin {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+
+	flags, err := h.Moderation.GetFlaggedContent(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "Flags not found or an error occurred",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(flags)
+}
+
+func (h *Handlers) GetFlagsFlagsId(c *fiber.Ctx, flagsId api.FlagsId) error {
+	//TODO implement me
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	isAdmin := false
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	for _, v := range detailsFromToken.roles {
+		if v.Name == "Admin" {
+			isAdmin = true
+			_ = v
+		}
+	}
+	if !isAdmin {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	flag, err := h.Moderation.GetFlagByID(c.Context(), flagsId)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "An error occurred or Flag not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(flag)
+}
+
+func (h *Handlers) PostFlagsFlagsIdReview(c *fiber.Ctx, flagsId api.FlagsId) error {
+	//TODO implement me
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	isAdmin := false
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusOK,
+			Message: "Unauthorized",
+		})
+	}
+	for _, v := range detailsFromToken.roles {
+		if v.Name == "Admin" {
+			isAdmin = true
+			_ = v
+		}
+	}
+	if !isAdmin {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusOK,
+			Message: "Unauthorized",
+		})
+	}
+	var status api.PostFlagsFlagsIdReviewJSONBody
+	if err := c.BodyParser(&status); err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request body",
+		})
+	}
+	err = h.Moderation.ReviewFlag(c.Context(), flagsId, string(*status.Status))
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "An error occurred or Flag not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON("Successful")
+}
+
+func (h *Handlers) PostFlagsSongId(c *fiber.Ctx, songId api.SongId) error {
+	//TODO implement me
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	isAdmin := false
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	for _, v := range detailsFromToken.roles {
+		if v.Name == "Admin" {
+			isAdmin = true
+			_ = v
+		}
+	}
+	if !isAdmin {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	err = h.Song.FlagSong(c.Context(), songId)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "An error occured or song not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON("Successful")
+}

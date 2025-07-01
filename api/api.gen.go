@@ -526,6 +526,15 @@ type GetUsersUserIdLibraryPurchasesParams struct {
 	Limit *Limit `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetUsersUserIdRecentParams defines parameters for GetUsersUserIdRecent.
+type GetUsersUserIdRecentParams struct {
+	// Limit Number of items per page
+	Limit *Limit `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Page Page integer
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+}
+
 // PostAlbumsJSONRequestBody defines body for PostAlbums for application/json ContentType.
 type PostAlbumsJSONRequestBody = Album
 
@@ -756,6 +765,9 @@ type ServerInterface interface {
 	// Create a new playlist
 	// (POST /users/{userId}/playlists)
 	PostUsersUserIdPlaylists(c *fiber.Ctx, userId UserId) error
+	// Get recently played music
+	// (GET /users/{userId}/recent)
+	GetUsersUserIdRecent(c *fiber.Ctx, userId UserId, params GetUsersUserIdRecentParams) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1954,6 +1966,47 @@ func (siw *ServerInterfaceWrapper) PostUsersUserIdPlaylists(c *fiber.Ctx) error 
 	return siw.Handler.PostUsersUserIdPlaylists(c, userId)
 }
 
+// GetUsersUserIdRecent operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersUserIdRecent(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId UserId
+
+	err = runtime.BindStyledParameter("simple", false, "userId", c.Params("userId"), &userId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter userId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersUserIdRecentParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
+	}
+
+	return siw.Handler.GetUsersUserIdRecent(c, userId, params)
+}
+
 // FiberServerOptions provides options for the Fiber server.
 type FiberServerOptions struct {
 	BaseURL     string
@@ -2085,6 +2138,8 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Post(options.BaseURL+"/users/:userId/playlists", wrapper.PostUsersUserIdPlaylists)
 
+	router.Get(options.BaseURL+"/users/:userId/recent", wrapper.GetUsersUserIdRecent)
+
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
@@ -2166,8 +2221,9 @@ var swaggerSpec = []string{
 	"htPnWVwr/mb/qyxU8r/2SZcsvr/injXov8Y9OxgMjqk7nlFXh7r9Omc7q5RJgG8ppJsOIXgGIK9Upbpw",
 	"vCdIUsNEwB7NJ5sG0ftZ2NSwsEp57B+s+qocZhoWzUDLsj70w1oeBb8t3H7oo8mFUe12CDnLpzA6FB8C",
 	"vmCNGSfyKFMv+LYeNatCd7vDZ2NkSfaU7/bNicu45mvPFFk+lNUIsU7ROAa8GkJyniC2hszUcDyM5QER",
-	"+0OXJaqia4LF4dFz7ASys+cEsh0SyB7mIGFbHjzZML2zB+4ExIPBmsjaCQ2chbPmPF5MJtkPi1fTV3MJ",
-	"O936Q3oKWYfXCdNNP7nSUeXmsyxAOn8ibxl5/PL4/wEAAP//tXx+L8yvAAA=",
+	"+0OXJaqia4LF4dFz7ASys+cEsh0SyB7mIGGHPHglyqPI03LrwHcfVeH92X/5Oe5OhuJYk2k/JeVcRWhf",
+	"VlQQCjYSfcgHYcJkpGVl7Ssbpnf2sLGAeDBYE4ndhAbOwllzHi8mk+yHxavpq7kUum75IT0Dr4M7BW70",
+	"kyud08B8loXn50/kHTePXx7/PwAA//+EB6IVSrIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

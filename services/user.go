@@ -7,6 +7,7 @@ import (
 	"crawl/repositories"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 )
 
 type UserService interface {
@@ -25,6 +26,7 @@ type UserService interface {
 	GetUserPublicPlaylists(ctx context.Context, userID uuid.UUID) ([]models.Playlist, error)
 	GetUserPlaylists(ctx context.Context, userID uuid.UUID) ([]models.Playlist, error)
 	CreatePlaylist(ctx context.Context, userID uuid.UUID, playlist *models.Playlist) (*models.Playlist, error)
+	GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error)
 }
 
 type userService struct {
@@ -34,6 +36,7 @@ type userService struct {
 	artistRepo        repositories.IArtistRepository
 	songPurchaseRepo  repositories.ISongPurchaseRepository
 	albumPurchaseRepo repositories.IAlbumPurchaseRepository
+	streamRepo        repositories.IStreamRepository
 }
 
 func NewUserService(
@@ -43,7 +46,7 @@ func NewUserService(
 	artistRepo repositories.IArtistRepository,
 	songPurchaseRepo repositories.ISongPurchaseRepository,
 	albumPurchaseRepo repositories.IAlbumPurchaseRepository,
-
+	streamRepo repositories.IStreamRepository,
 ) UserService {
 	return &userService{
 		userRepo:          userRepo,
@@ -52,6 +55,7 @@ func NewUserService(
 		artistRepo:        artistRepo,
 		songPurchaseRepo:  songPurchaseRepo,
 		albumPurchaseRepo: albumPurchaseRepo,
+		streamRepo:        streamRepo,
 	}
 }
 
@@ -181,4 +185,8 @@ func (s *userService) CreatePlaylist(ctx context.Context, userID uuid.UUID, play
 
 func (s *userService) GetArtistByUserId(ctx context.Context, userID uuid.UUID) (*models.Artist, error) {
 	return s.artistRepo.GetWithUserId(userID)
+}
+
+func (s *userService) GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error) {
+	return s.streamRepo.GetUserRecentStreams(ctx, userID, limit, offset)
 }

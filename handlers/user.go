@@ -25,7 +25,6 @@ func (h *Handlers) GetUsers(c *fiber.Ctx, params api.GetUsersParams) error {
 func (h *Handlers) PostCreateAdmin(c *fiber.Ctx) error {
 	detailsFromToken, err := h.getDetailsFromToken(c)
 	isAdmin := false
-	var _ models.Role
 	if err != nil {
 		return c.Status(fiber.StatusOK).JSON(api.Error{
 			Code:    fiber.StatusOK,
@@ -386,4 +385,33 @@ func (h *Handlers) GetUsersUserIdLibraryPurchases(c *fiber.Ctx, userId types.UUI
 	}
 
 	return c.JSON(purchases)
+}
+
+func (h *Handlers) GetUsersUserIdRecent(c *fiber.Ctx, userId api.UserId, params api.GetUsersUserIdRecentParams) error {
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+
+	// Verify the requesting user is updating their own profile
+	if detailsFromToken.userID != userId {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusForbidden,
+			Message: "Forbidden, You can only update your own profile",
+		})
+	}
+
+	songs, err := h.User.GetUserRecentStreams(c.Context(), userId, *params.Limit, *params.Page)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "An error occurred, songs not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(songs)
+
 }

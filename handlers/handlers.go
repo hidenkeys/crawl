@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"crawl/api"
 	"crawl/repositories"
 	"crawl/services"
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -22,30 +20,10 @@ type Handlers struct {
 	Auth       services.AuthService
 }
 
-func (h *Handlers) GetFlags(c *fiber.Ctx) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (h *Handlers) GetFlagsFlagsId(c *fiber.Ctx, flagsId api.FlagsId) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (h *Handlers) PostFlagsFlagsIdReview(c *fiber.Ctx, flagsId api.FlagsId) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (h *Handlers) PostFlagsSongId(c *fiber.Ctx, songId api.SongId) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewHandlers(db *gorm.DB) *Handlers {
 	repos := repositories.NewRepositories(db)
 	return &Handlers{
-		User:       services.NewUserService(repos.User, repos.Role, repos.Playlist, repos.Artist, repos.SongPurchase, repos.AlbumPurchase),
+		User:       services.NewUserService(repos.User, repos.Role, repos.Playlist, repos.Artist, repos.SongPurchase, repos.AlbumPurchase, repos.Stream),
 		Artist:     services.NewArtistService(repos.Artist, repos.Song, repos.User, repos.Role),
 		Album:      services.NewAlbumService(repos.Album, repos.AlbumContributor, repos.Song),
 		Song:       services.NewSongService(repos.Song, repos.Artist, repos.Genre, repos.Album, repos.Stream, repos.SongContributorRepository),
