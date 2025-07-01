@@ -17,8 +17,8 @@ func (h *Handlers) GetPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 
 	// Check if playlist is private
 	if !playlist.IsPublic {
-		userID, err := h.getUserIDFromToken(c)
-		if err != nil || userID != playlist.UserID {
+		userDetails, err := h.getDetailsFromToken(c)
+		if err != nil || userDetails.userID != playlist.UserID {
 			return c.Status(fiber.StatusForbidden).JSON(api.Error{
 				Code:    fiber.StatusForbidden,
 				Message: "You don't have access to this playlist",
@@ -30,7 +30,7 @@ func (h *Handlers) GetPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 }
 
 func (h *Handlers) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -55,7 +55,7 @@ func (h *Handlers) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.U
 		})
 	}
 
-	if playlist.UserID != userID {
+	if playlist.UserID != userDetails.userID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only add songs to your own playlists",
@@ -82,7 +82,7 @@ func (h *Handlers) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.U
 }
 
 func (h *Handlers) DeletePlaylistsPlaylistIdSongsSongId(c *fiber.Ctx, playlistId types.UUID, songId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -99,7 +99,7 @@ func (h *Handlers) DeletePlaylistsPlaylistIdSongsSongId(c *fiber.Ctx, playlistId
 		})
 	}
 
-	if playlist.UserID != userID {
+	if playlist.UserID != userDetails.userID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only remove songs from your own playlists",
@@ -127,8 +127,8 @@ func (h *Handlers) GetPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UU
 
 	// Check if playlist is private
 	if !playlist.IsPublic {
-		userID, err := h.getUserIDFromToken(c)
-		if err != nil || userID != playlist.UserID {
+		userDetails, err := h.getDetailsFromToken(c)
+		if err != nil || userDetails.userID != playlist.UserID {
 			return c.Status(fiber.StatusForbidden).JSON(api.Error{
 				Code:    fiber.StatusForbidden,
 				Message: "You don't have access to this playlist",
@@ -148,7 +148,7 @@ func (h *Handlers) GetPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UU
 }
 
 func (h *Handlers) PutPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -173,7 +173,7 @@ func (h *Handlers) PutPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 		})
 	}
 
-	if playlist.UserID != userID {
+	if playlist.UserID != userDetails.userID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only update your own playlists",
@@ -209,7 +209,7 @@ func (h *Handlers) PutPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 }
 
 func (h *Handlers) DeletePlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -226,7 +226,7 @@ func (h *Handlers) DeletePlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID
 		})
 	}
 
-	if playlist.UserID != userID {
+	if playlist.UserID != userDetails.userID {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only delete your own playlists",

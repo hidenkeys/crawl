@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"context"
 	"crawl/models"
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 	"time"
 
 	"gorm.io/gorm"
@@ -44,4 +46,31 @@ func (r *StreamRepository) GetStreamBySong(songID uuid.UUID) (*models.Stream, er
 		Find(&stream).
 		Error
 	return stream, err
+}
+
+func (r *StreamRepository) GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error) {
+	var songs []models.Song
+
+	// Subquery to get distinct song IDs from user's streams, ordered by most recent
+	subQuery := r.DB.WithContext(ctx).
+		Model(&models.Stream{}).
+		Where("user_id = ?", userID).
+		Select("DISTINCT ON (song_id) song_id, created_at").
+		Order("song_id, created_at DESC")
+
+	// Main query to get songs joined with the subquery
+	err := r.DB.WithContext(ctx).
+		Model(&models.Song{}).
+		Select("songs.*").
+		Joins("INNER JOIN (?) AS user_recent_streams ON songs.id = user_recent_streams.song_id", subQuery).
+		Order("user_recent_streams.created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&songs).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return songs, nil
 }

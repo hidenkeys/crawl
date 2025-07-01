@@ -7,6 +7,7 @@ import (
 	"crawl/repositories"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 )
 
 type UserService interface {
@@ -25,30 +26,36 @@ type UserService interface {
 	GetUserPublicPlaylists(ctx context.Context, userID uuid.UUID) ([]models.Playlist, error)
 	GetUserPlaylists(ctx context.Context, userID uuid.UUID) ([]models.Playlist, error)
 	CreatePlaylist(ctx context.Context, userID uuid.UUID, playlist *models.Playlist) (*models.Playlist, error)
+	GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error)
 }
 
 type userService struct {
 	userRepo          repositories.IUserRepository
+	roleRepo          repositories.IRoleRepository
 	playlistRepo      repositories.IPlaylistRepository
 	artistRepo        repositories.IArtistRepository
 	songPurchaseRepo  repositories.ISongPurchaseRepository
 	albumPurchaseRepo repositories.IAlbumPurchaseRepository
+	streamRepo        repositories.IStreamRepository
 }
 
 func NewUserService(
 	userRepo repositories.IUserRepository,
+	roleRepo repositories.IRoleRepository,
 	playlistRepo repositories.IPlaylistRepository,
 	artistRepo repositories.IArtistRepository,
 	songPurchaseRepo repositories.ISongPurchaseRepository,
 	albumPurchaseRepo repositories.IAlbumPurchaseRepository,
-
+	streamRepo repositories.IStreamRepository,
 ) UserService {
 	return &userService{
 		userRepo:          userRepo,
+		roleRepo:          roleRepo,
 		playlistRepo:      playlistRepo,
 		artistRepo:        artistRepo,
 		songPurchaseRepo:  songPurchaseRepo,
 		albumPurchaseRepo: albumPurchaseRepo,
+		streamRepo:        streamRepo,
 	}
 }
 
@@ -65,7 +72,22 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		return nil, errors.New("username already exists")
 	}
 
-	return s.userRepo.Create(user)
+	role, err := s.roleRepo.FindByRolename("Listener")
+	if err != nil {
+		return nil, errors.New("role not found")
+	}
+	newUser, err := s.userRepo.Create(user)
+	if err != nil {
+		return nil, errors.New("error occurred creating user")
+	}
+
+	err = s.roleRepo.AssignRoleToUser(role.ID, newUser.ID)
+	if err != nil {
+		return nil, errors.New("error occurred adding Role to user")
+	}
+
+	return newUser, nil
+
 }
 
 func (s *userService) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
@@ -92,7 +114,6 @@ func (s *userService) Update(ctx context.Context, userID uuid.UUID, userReq api.
 	user.Username = userReq.Username
 	user.FirstName = userReq.FirstName
 	user.LastName = userReq.LastName
-	user.IsArtist = userReq.IsArtist
 	if userReq.Bio != nil {
 		user.Bio = *userReq.Bio
 	}
@@ -164,4 +185,8 @@ func (s *userService) CreatePlaylist(ctx context.Context, userID uuid.UUID, play
 
 func (s *userService) GetArtistByUserId(ctx context.Context, userID uuid.UUID) (*models.Artist, error) {
 	return s.artistRepo.GetWithUserId(userID)
+}
+
+func (s *userService) GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error) {
+	return s.streamRepo.GetUserRecentStreams(ctx, userID, limit, offset)
 }

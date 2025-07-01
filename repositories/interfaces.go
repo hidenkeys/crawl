@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"context"
 	"crawl/models"
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 	"time"
 )
 
@@ -43,6 +45,7 @@ type ISongRepository interface {
 	GetTrending(limit int, since time.Time) ([]models.Song, error)
 	AddPlayCount(id uuid.UUID, count int) error
 	Search(query, artist, genre *string, sort, order *string, offset, limit int) ([]models.Song, error)
+	FlagContent(songID uuid.UUID) error
 }
 
 type IAlbumRepository interface {
@@ -72,6 +75,7 @@ type IStreamRepository interface {
 	GetStreamCount(songID uuid.UUID, since time.Time) (int64, error)
 	GetArtistStreams(artistID uuid.UUID, start, end time.Time) ([]models.Stream, error)
 	GetStreamBySong(songID uuid.UUID) (*models.Stream, error)
+	GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error)
 }
 
 type ITipRepository interface {
@@ -116,6 +120,7 @@ type IRoleRepository interface {
 	AssignRoleToUser(userID, roleID uuid.UUID) error
 	RemoveRoleFromUser(userID, roleID uuid.UUID) error
 	GetUserRoles(userID uuid.UUID) ([]models.Role, error)
+	FindByRolename(name string) (*models.Role, error)
 }
 
 // IUserFavoriteRepository User Favorite

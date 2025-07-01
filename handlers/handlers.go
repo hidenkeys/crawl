@@ -23,8 +23,8 @@ type Handlers struct {
 func NewHandlers(db *gorm.DB) *Handlers {
 	repos := repositories.NewRepositories(db)
 	return &Handlers{
-		User:       services.NewUserService(repos.User, repos.Playlist, repos.Artist, repos.SongPurchase, repos.AlbumPurchase),
-		Artist:     services.NewArtistService(repos.Artist, repos.Song, repos.User),
+		User:       services.NewUserService(repos.User, repos.Role, repos.Playlist, repos.Artist, repos.SongPurchase, repos.AlbumPurchase, repos.Stream),
+		Artist:     services.NewArtistService(repos.Artist, repos.Song, repos.User, repos.Role),
 		Album:      services.NewAlbumService(repos.Album, repos.AlbumContributor, repos.Song),
 		Song:       services.NewSongService(repos.Song, repos.Artist, repos.Genre, repos.Album, repos.Stream, repos.SongContributorRepository),
 		Genre:      services.NewGenreService(repos.Genre),
@@ -33,6 +33,6 @@ func NewHandlers(db *gorm.DB) *Handlers {
 		Stream:     services.NewStreamService(repos.Stream, repos.Song),
 		Tip:        services.NewTipService(repos.Tip, repos.User, repos.Artist),
 		Moderation: services.NewModerationService(repos.Moderation),
-		Auth:       services.NewAuthService(repos.User),
+		Auth:       services.NewAuthService(repos.User, repos.Role),
 	}
 }

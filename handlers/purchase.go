@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -23,7 +23,7 @@ func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
 	}
 
 	// Verify the requesting user is purchasing for themselves
-	if userID != purchaseReq.UserId {
+	if userDetails.userID != purchaseReq.UserId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only purchase for yourself",
@@ -52,7 +52,7 @@ func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
 }
 
 func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
-	userID, err := h.getUserIDFromToken(c)
+	userDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -69,7 +69,7 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 	}
 
 	// Verify the requesting user is purchasing for themselves
-	if userID != purchaseReq.UserId {
+	if userDetails.userID != purchaseReq.UserId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only purchase for yourself",

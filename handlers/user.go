@@ -22,6 +22,40 @@ func (h *Handlers) GetUsers(c *fiber.Ctx, params api.GetUsersParams) error {
 	return c.JSON(users)
 }
 
+func (h *Handlers) PostCreateAdmin(c *fiber.Ctx) error {
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	isAdmin := false
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusOK,
+			Message: "Unauthorized",
+		})
+	}
+	for _, v := range detailsFromToken.roles {
+		if v.Name == "Admin" {
+			isAdmin = true
+			_ = v
+		}
+	}
+	if !isAdmin {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusOK,
+			Message: "Unauthorized",
+		})
+	}
+
+	var userReq api.PostCreateAdminJSONBody
+	if err := c.BodyParser(&userReq); err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    01,
+			Message: "Invalid request body",
+		})
+	}
+	// TODO complete
+	return c.Status(fiber.StatusOK).JSON("Done")
+
+}
+
 func (h *Handlers) PostUsers(c *fiber.Ctx) error {
 	var userReq api.PostUsersJSONRequestBody
 	if err := c.BodyParser(&userReq); err != nil {
@@ -50,7 +84,7 @@ func (h *Handlers) PostUsers(c *fiber.Ctx) error {
 	}
 	println(userReq.LastName)
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(*userReq.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Errorf("Failed to hash password: %s", err.Error())
 		return c.Status(fiber.StatusOK).JSON(api.Error{ // 500
@@ -64,7 +98,6 @@ func (h *Handlers) PostUsers(c *fiber.Ctx) error {
 		Username:       userReq.Username,
 		FirstName:      userReq.FirstName,
 		LastName:       userReq.LastName,
-		IsArtist:       userReq.IsArtist,
 	}
 
 	// 6. Handle optional fields safely
@@ -106,7 +139,7 @@ func (h *Handlers) GetUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 }
 
 func (h *Handlers) PutUsersUserId(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	detailsFromToken, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -115,7 +148,7 @@ func (h *Handlers) PutUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 	}
 
 	// Verify the requesting user is updating their own profile
-	if requestingUserID != userId {
+	if detailsFromToken.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only update your own profile",
@@ -142,7 +175,7 @@ func (h *Handlers) PutUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 }
 
 func (h *Handlers) DeleteUsersUserId(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -151,7 +184,7 @@ func (h *Handlers) DeleteUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 	}
 
 	// Verify the requesting user is deleting their own profile
-	if requestingUserID != userId {
+	if requestingUserDetails.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only delete your own profile",
@@ -169,7 +202,7 @@ func (h *Handlers) DeleteUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 }
 
 func (h *Handlers) GetUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		// If not authenticated, only show public playlists
 		playlists, err := h.Playlist.GetAllPlaylists(c.Context())
@@ -183,7 +216,7 @@ func (h *Handlers) GetUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) erro
 	}
 
 	// If authenticated and requesting own playlists, show all
-	if requestingUserID == userId {
+	if requestingUserDetails.userID == userId {
 		playlists, err := h.User.GetUserPlaylists(c.Context(), userId)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
@@ -206,7 +239,7 @@ func (h *Handlers) GetUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) erro
 }
 
 func (h *Handlers) PostUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -215,7 +248,7 @@ func (h *Handlers) PostUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) err
 	}
 
 	// Verify the requesting user is creating a playlist for themselves
-	if requestingUserID != userId {
+	if requestingUserDetails.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only create playlists for yourself",
@@ -271,7 +304,7 @@ func (h *Handlers) PostUsersUserIdPlaylists(c *fiber.Ctx, userId types.UUID) err
 }
 
 func (h *Handlers) GetUsersUserIdLibraryAlbums(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -280,7 +313,7 @@ func (h *Handlers) GetUsersUserIdLibraryAlbums(c *fiber.Ctx, userId types.UUID) 
 	}
 
 	// Verify the requesting user is accessing their own library
-	if requestingUserID != userId {
+	if requestingUserDetails.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only access your own library",
@@ -299,7 +332,7 @@ func (h *Handlers) GetUsersUserIdLibraryAlbums(c *fiber.Ctx, userId types.UUID) 
 }
 
 func (h *Handlers) GetUsersUserIdLibrarySongs(c *fiber.Ctx, userId types.UUID) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -308,7 +341,7 @@ func (h *Handlers) GetUsersUserIdLibrarySongs(c *fiber.Ctx, userId types.UUID) e
 	}
 
 	// Verify the requesting user is accessing their own library
-	if requestingUserID != userId {
+	if requestingUserDetails.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only access your own library",
@@ -327,7 +360,7 @@ func (h *Handlers) GetUsersUserIdLibrarySongs(c *fiber.Ctx, userId types.UUID) e
 }
 
 func (h *Handlers) GetUsersUserIdLibraryPurchases(c *fiber.Ctx, userId types.UUID, params api.GetUsersUserIdLibraryPurchasesParams) error {
-	requestingUserID, err := h.getUserIDFromToken(c)
+	requestingUserDetails, err := h.getDetailsFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
@@ -336,7 +369,7 @@ func (h *Handlers) GetUsersUserIdLibraryPurchases(c *fiber.Ctx, userId types.UUI
 	}
 
 	// Verify the requesting user is accessing their own library
-	if requestingUserID != userId {
+	if requestingUserDetails.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "You can only access your own library",
@@ -352,4 +385,33 @@ func (h *Handlers) GetUsersUserIdLibraryPurchases(c *fiber.Ctx, userId types.UUI
 	}
 
 	return c.JSON(purchases)
+}
+
+func (h *Handlers) GetUsersUserIdRecent(c *fiber.Ctx, userId api.UserId, params api.GetUsersUserIdRecentParams) error {
+	detailsFromToken, err := h.getDetailsFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+
+	// Verify the requesting user is updating their own profile
+	if detailsFromToken.userID != userId {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusForbidden,
+			Message: "Forbidden, You can only update your own profile",
+		})
+	}
+
+	songs, err := h.User.GetUserRecentStreams(c.Context(), userId, *params.Limit, *params.Page)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "An error occurred, songs not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(songs)
+
 }

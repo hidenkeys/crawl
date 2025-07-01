@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crawl/api"
+	"crawl/models"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/oapi-codegen/runtime/types"
 	"strings"
@@ -85,7 +86,7 @@ import (
 func (h *Handlers) PostLogin(c *fiber.Ctx) error {
 	var loginReq api.PostLoginJSONBody
 	if err := c.BodyParser(&loginReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
+		return c.Status(fiber.StatusOK).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
 			Message: "Invalid request body",
 		})
@@ -93,43 +94,54 @@ func (h *Handlers) PostLogin(c *fiber.Ctx) error {
 
 	token, err := h.Auth.Login(c.Context(), loginReq)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
+		return c.Status(fiber.StatusOK).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
 			Message: "Invalid credentials",
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	/*return c.JSON(fiber.Map{
 		"token": token,
+	})*/
+	return c.Status(fiber.StatusOK).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Login Successful",
+		Data:    token,
 	})
 }
 
-func (h *Handlers) getUserIDFromToken(c *fiber.Ctx) (types.UUID, error) {
+type TokenDetails struct {
+	userID types.UUID
+	roles  []models.Role
+	email  string
+}
+
+func (h *Handlers) getDetailsFromToken(c *fiber.Ctx) (TokenDetails, error) {
 	// Get the token from the Authorization header
 	authHeader := c.Get("Authorization")
 	log.Infof("Header: %s", authHeader)
 	if authHeader == "" {
-		return types.UUID{}, fiber.NewError(fiber.StatusUnauthorized, "Missing authorization header")
+		return TokenDetails{}, fiber.NewError(fiber.StatusUnauthorized, "Missing authorization header")
 	}
 
-	// The token is typically in the format "Bearer <token>"
+	// The token is typicaly in the format "Bearer <token>"
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenString == authHeader {
-		return types.UUID{}, fiber.NewError(fiber.StatusUnauthorized, "Invalid authorization header format")
+		return TokenDetails{}, fiber.NewError(fiber.StatusUnauthorized, "Invalid authorization header format")
 	}
 
 	// Parse and validate the token
 	claims, err := h.Auth.ParseToken(tokenString)
 	if err != nil {
-		return types.UUID{}, fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
+		return TokenDetails{}, fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
 	}
 
 	// Convert the user ID from string to UUID
-	userID := claims.UserID
+	tokenDetails := TokenDetails{
+		userID: claims.UserID,
+		roles:  claims.Roles,
+		email:  claims.Email,
+	}
 
-	return userID, nil
-}
-
-func (h *Handlers) GetRole() {
-	panic("Implement me")
+	return tokenDetails, nil
 }

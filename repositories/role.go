@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"crawl/models"
+	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -36,4 +37,13 @@ func (r *RoleRepository) GetUserRoles(userID uuid.UUID) ([]models.Role, error) {
 		Find(&roles).
 		Error
 	return roles, err
+}
+
+func (r *RoleRepository) FindByRolename(name string) (*models.Role, error) {
+	var role models.Role
+	err := r.DB.Where("name = ?", name).First(&role).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrRecordNotFound
+	}
+	return &role, err
 }
