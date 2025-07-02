@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type User struct {
 	BaseModel
 	FirstName      string  `gorm:"size:100;not null" json:"first_name"`
@@ -11,7 +13,7 @@ type User struct {
 	ProfileImage   string  `gorm:"size:255" json:"profile_image_url"`
 	Bio            string  `gorm:"type:text" json:"bio"`
 	IsArtist       bool    `gorm:"default:false" json:"is_artist"`
-	Roles          []Role  `gorm:"many2many:user_roles;" json:"roles,omitempty"`
+	Roles          []Role  `gorm:"many2many:user_roles;joinForeignKey:UserID;joinReferences:RoleID" json:"roles,omitempty"`
 	ArtistProfile  *Artist `gorm:"foreignKey:UserID" json:"artist_profile,omitempty"`
 }
 
@@ -19,5 +21,11 @@ type Role struct {
 	BaseModel
 	Name        string `gorm:"size:50;uniqueIndex" json:"name"`
 	Description string `gorm:"type:text" json:"description"`
-	Users       []User `gorm:"many2many:user_roles;" json:"users,omitempty"`
+	Users       []User `gorm:"many2many:user_roles;joinForeignKey:RoleID;joinReferences:UserID" json:"users,omitempty"`
+}
+
+type UserRole struct {
+	UserID    uint      `gorm:"primaryKey" json:"user_id"`
+	RoleID    uint      `gorm:"primaryKey" json:"role_id"`
+	CreatedAt time.Time `json:"created_at"`
 }

@@ -10,6 +10,8 @@ import (
 )
 
 type GenreService interface {
+	Create(ctx context.Context, genre *models.Genre) (*models.Genre, error)
+	Update(ctx context.Context, genre *models.Genre) (*models.Genre, error)
 	GetAllGenres(ctx context.Context) ([]models.Genre, error)
 	GetGenreByID(ctx context.Context, genreID uuid.UUID) (*models.Genre, error)
 	GetPopularGenres(ctx context.Context, limit int) ([]models.Genre, error)
@@ -23,6 +25,14 @@ func NewGenreService(genreRepo repositories.IGenreRepository) GenreService {
 	return &genreService{
 		genreRepo: genreRepo,
 	}
+}
+
+func (s *genreService) Create(ctx context.Context, genre *models.Genre) (*models.Genre, error) {
+	return s.genreRepo.Create(genre)
+}
+
+func (s *genreService) Update(ctx context.Context, genre *models.Genre) (*models.Genre, error) {
+	return s.genreRepo.Update(genre)
 }
 
 func (s *genreService) GetAllGenres(ctx context.Context) ([]models.Genre, error) {
