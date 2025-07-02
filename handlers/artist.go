@@ -39,7 +39,7 @@ func (h *Handlers) PostArtists(c *fiber.Ctx) error {
 	// Check if user already has an artist profile
 
 	_, err = h.User.GetArtistByUserId(c.Context(), userDetails.userID)
-	if err == nil {
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
 			Message: "User already has an artist profile",

@@ -45,6 +45,7 @@ func MigrateDatabase() {
 		&models.Stream{},
 		&models.MonthlyRoyalty{},
 		&models.ContentFlag{},
+		&models.UserRole{},
 	)
 
 	if err != nil {

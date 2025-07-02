@@ -395,6 +395,7 @@ components:
           example: "https://cdn.musicapp.com/genres/rock.jpg"
       required:
         - name
+        - description
 
     Contributor:
       type: object
@@ -1383,6 +1384,37 @@ paths:
 
   # Genres
   /genres:
+    post:
+      tags:
+        - Genres
+        - Admin
+      summary: Create a genre
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Genre'
+      responses:
+        '200':
+          description: Genre created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      genre:
+                        $ref: '#/components/schemas/Genre'
+
     get:
       tags:
         - Genres
@@ -1410,6 +1442,38 @@ paths:
                           $ref: '#/components/schemas/Genre'
 
   /genres/{genreId}:
+    put:
+      tags:
+        - Genres
+        - Admin
+      summary: Update a genre
+      parameters:
+        - $ref: '#/components/parameters/genreId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Genre'
+      responses:
+        '200':
+          description: Genre updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      genre:
+                        $ref: '#/components/schemas/Genre'
     get:
       tags:
         - Genres

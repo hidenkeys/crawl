@@ -19,7 +19,7 @@ func NewRoleRepository(db *gorm.DB) IRoleRepository {
 
 func (r *RoleRepository) AssignRoleToUser(userID, roleID uuid.UUID) error {
 	return r.DB.
-		Exec("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?) ON CONFLICT DO NOTHING", userID, roleID).
+		Exec("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)", userID, roleID).
 		Error
 }
 

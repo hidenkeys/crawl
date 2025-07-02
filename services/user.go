@@ -27,6 +27,7 @@ type UserService interface {
 	GetUserPlaylists(ctx context.Context, userID uuid.UUID) ([]models.Playlist, error)
 	CreatePlaylist(ctx context.Context, userID uuid.UUID, playlist *models.Playlist) (*models.Playlist, error)
 	GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error)
+	CreateAdminFromUser(ctx context.Context, userId uuid.UUID) error
 }
 
 type userService struct {
@@ -189,4 +190,17 @@ func (s *userService) GetArtistByUserId(ctx context.Context, userID uuid.UUID) (
 
 func (s *userService) GetUserRecentStreams(ctx context.Context, userID types.UUID, limit int, offset int) ([]models.Song, error) {
 	return s.streamRepo.GetUserRecentStreams(ctx, userID, limit, offset)
+}
+
+func (s *userService) CreateAdminFromUser(ctx context.Context, userId uuid.UUID) error {
+	role, err := s.roleRepo.FindByRolename("Admin")
+	if err != nil {
+		return errors.New("role not found")
+	}
+
+	err = s.roleRepo.AssignRoleToUser(userId, role.ID)
+	if err != nil {
+		return errors.New("error occurred adding Role to user")
+	}
+	return nil
 }

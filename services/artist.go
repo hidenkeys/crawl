@@ -69,7 +69,7 @@ func (s *artistService) CreateArtist(ctx context.Context, artist *models.Artist)
 		log.Infof("Failed to change user isArtist to true")
 		return nil, err
 	}
-	return nil, err
+	return newArtist, nil
 }
 
 func (s *artistService) GetArtistByID(ctx context.Context, artistID uuid.UUID) (*models.Artist, error) {
