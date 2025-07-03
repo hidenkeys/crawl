@@ -42,7 +42,11 @@ func (h *Handlers) GetSearch(c *fiber.Ctx, params api.GetSearchParams) error {
 		Playlists: playlists,
 	}
 
-	return c.JSON(result)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    result,
+	})
 }
 
 func (h *Handlers) GetSearchAlbums(c *fiber.Ctx, params api.GetSearchAlbumsParams) error {
@@ -54,7 +58,11 @@ func (h *Handlers) GetSearchAlbums(c *fiber.Ctx, params api.GetSearchAlbumsParam
 		})
 	}
 
-	return c.JSON(albums)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    albums,
+	})
 }
 
 func (h *Handlers) GetSearchArtists(c *fiber.Ctx, params api.GetSearchArtistsParams) error {
@@ -66,7 +74,11 @@ func (h *Handlers) GetSearchArtists(c *fiber.Ctx, params api.GetSearchArtistsPar
 		})
 	}
 
-	return c.JSON(artists)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    artists,
+	})
 }
 
 func (h *Handlers) GetSearchGenres(c *fiber.Ctx, params api.GetSearchGenresParams) error {
@@ -78,7 +90,11 @@ func (h *Handlers) GetSearchGenres(c *fiber.Ctx, params api.GetSearchGenresParam
 		})
 	}
 
-	return c.JSON(genres)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    genres,
+	})
 }
 
 func (h *Handlers) GetSearchPlaylists(c *fiber.Ctx, params api.GetSearchPlaylistsParams) error {
@@ -91,7 +107,11 @@ func (h *Handlers) GetSearchPlaylists(c *fiber.Ctx, params api.GetSearchPlaylist
 		})
 	}
 
-	return c.JSON(playlists)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    playlists,
+	})
 }
 
 func (h *Handlers) GetSearchSongs(c *fiber.Ctx, params api.GetSearchSongsParams) error {
@@ -103,5 +123,9 @@ func (h *Handlers) GetSearchSongs(c *fiber.Ctx, params api.GetSearchSongsParams)
 		})
 	}
 
-	return c.JSON(songs)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Search fetched successfully",
+		Data:    songs,
+	})
 }

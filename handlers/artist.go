@@ -10,13 +10,17 @@ import (
 func (h *Handlers) GetArtists(c *fiber.Ctx, params api.GetArtistsParams) error {
 	artists, err := h.Artist.GetAllArtists(c.Context(), params.Page, params.Limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch artists",
 		})
 	}
 
-	return c.JSON(artists)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Artists fetched successfully",
+		Data:    artists,
+	})
 }
 
 func (h *Handlers) PostArtists(c *fiber.Ctx) error {
@@ -69,25 +73,33 @@ func (h *Handlers) PostArtists(c *fiber.Ctx) error {
 
 	createdArtist, err := h.Artist.CreateArtist(c.Context(), artist)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to create artist profile",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(createdArtist)
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Artist profile created successfully",
+		Data:    createdArtist,
+	})
 }
 
 func (h *Handlers) GetArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
 	artist, err := h.Artist.GetArtistByID(c.Context(), artistId)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(api.Error{
-			Code:    fiber.StatusNotFound,
-			Message: "Artist not found",
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "An error occurred or Artist not found",
 		})
 	}
 
-	return c.JSON(artist)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Artist fetched successfully",
+		Data:    artist,
+	})
 }
 
 func (h *Handlers) PutArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
@@ -143,23 +155,31 @@ func (h *Handlers) PutArtistsArtistId(c *fiber.Ctx, artistId types.UUID) error {
 
 	updatedArtist, err := h.Artist.UpdateArtist(c.Context(), artist.ID, artist)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to update artist",
 		})
 	}
 
-	return c.JSON(updatedArtist)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "LArtist profile updated successfully",
+		Data:    updatedArtist,
+	})
 }
 
 func (h *Handlers) GetArtistsArtistIdSongs(c *fiber.Ctx, artistId types.UUID, params api.GetArtistsArtistIdSongsParams) error {
 	songs, err := h.Artist.GetArtistSongs(c.Context(), artistId, params.Page, params.Limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch artist songs",
 		})
 	}
 
-	return c.JSON(songs)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "All songs by artist fetched successfully",
+		Data:    songs,
+	})
 }

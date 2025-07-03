@@ -2646,6 +2646,32 @@ paths:
                   data:
                     type: object
 
+  /flags/{albumId}:
+    post:
+      tags:
+        - Admin
+      summary: Flag content
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '200':
+          description: flag an album
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+
   /flags/{flagsId}/review:
     post:
       tags:

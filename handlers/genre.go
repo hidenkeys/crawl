@@ -10,25 +10,33 @@ import (
 func (h *Handlers) GetGenres(c *fiber.Ctx) error {
 	genres, err := h.Genre.GetAllGenres(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusNotExtended).JSON(api.Error{
+			Code:    fiber.StatusNotExtended,
 			Message: "Failed to fetch genres",
 		})
 	}
 
-	return c.JSON(genres)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Genres fetched successfully",
+		Data:    genres,
+	})
 }
 
 func (h *Handlers) GetGenresGenreId(c *fiber.Ctx, genreId types.UUID) error {
 	genre, err := h.Genre.GetGenreByID(c.Context(), genreId)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(api.Error{
-			Code:    fiber.StatusNotFound,
-			Message: "Genre not found",
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "An error occurred or Genre not found",
 		})
 	}
 
-	return c.JSON(genre)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Genre fetched successfully",
+		Data:    genre,
+	})
 }
 
 func (h *Handlers) PostGenres(c *fiber.Ctx) error {
@@ -71,12 +79,16 @@ func (h *Handlers) PostGenres(c *fiber.Ctx) error {
 
 	genre, err := h.Genre.Create(c.Context(), newGenre)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(api.Error{
-			Code:    fiber.StatusNotFound,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "An error occurred creating genre",
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(genre)
+	return c.Status(fiber.StatusOK).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Genre created successfully",
+		Data:    genre,
+	})
 }
 
 func (h *Handlers) PutGenresGenreId(c *fiber.Ctx, genreId api.GenreId) error {
@@ -111,9 +123,9 @@ func (h *Handlers) PutGenresGenreId(c *fiber.Ctx, genreId api.GenreId) error {
 
 	genre, err := h.Genre.GetGenreByID(c.Context(), genreId)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(api.Error{
-			Code:    fiber.StatusNotFound,
-			Message: "Genre not found for given ID",
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "An error occurred or Genre not found for given ID",
 		})
 	}
 
@@ -130,5 +142,10 @@ func (h *Handlers) PutGenresGenreId(c *fiber.Ctx, genreId api.GenreId) error {
 			Message: "Failed to update genre",
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(updatedGenre)
+	return c.Status(fiber.StatusOK).JSON(
+		models.Response{
+			Code:    fiber.StatusOK,
+			Message: "Genre updated successfully",
+			Data:    updatedGenre,
+		})
 }

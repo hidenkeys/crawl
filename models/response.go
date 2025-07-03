@@ -1,7 +1,7 @@
 package models
 
 type Response struct {
-	Code    int
-	Message string
-	Data    any
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
 }

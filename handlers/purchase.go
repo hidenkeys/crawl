@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crawl/api"
+	"crawl/models"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -48,7 +49,12 @@ func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(purchase)
+	return c.Status(fiber.StatusCreated).JSON(
+		models.Response{
+			Code:    fiber.StatusOK,
+			Message: "Album purchased successful",
+			Data:    purchase,
+		})
 }
 
 func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
@@ -94,5 +100,9 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(purchase)
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song purchased successfully",
+		Data:    purchase,
+	})
 }

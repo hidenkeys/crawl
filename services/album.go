@@ -21,6 +21,7 @@ type AlbumService interface {
 	GetAlbumContributors(ctx context.Context, albumID uuid.UUID) ([]models.AlbumContributor, error)
 	AddAlbumContributor(ctx context.Context, albumID uuid.UUID, contributor *models.AlbumContributor) error
 	GetAlbumSongs(ctx context.Context, albumID uuid.UUID) ([]models.Song, error)
+	FlagAlbum(ctx context.Context, albumID uuid.UUID) error
 }
 
 type albumService struct {
@@ -137,4 +138,12 @@ func (s *albumService) GetAlbumSongs(ctx context.Context, albumID uuid.UUID) ([]
 		return nil, err
 	}
 	return album.Songs, nil
+}
+
+func (s *albumService) FlagAlbum(ctx context.Context, albumID uuid.UUID) error {
+	err := s.albumRepo.FlagContent(albumID)
+	if err != nil {
+		return errors.New("Album not found")
+	}
+	return nil
 }

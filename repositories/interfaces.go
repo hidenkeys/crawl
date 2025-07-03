@@ -53,6 +53,7 @@ type IAlbumRepository interface {
 	GetWithSongs(id uuid.UUID) (*models.Album, error)
 	GetByArtist(artistID uuid.UUID) ([]models.Album, error)
 	SearchAlbums(query *string, artist *string, genre *string, sort *string, page *int, limit *int) ([]models.Album, error)
+	FlagContent(albumID uuid.UUID) error
 }
 
 type IPlaylistRepository interface {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crawl/api"
+	"crawl/models"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -34,11 +35,15 @@ func (h *Handlers) PostTips(c *fiber.Ctx) error {
 	// Process tip payment
 	tip, err := h.Tip.SendTip(c.Context(), tipReq, userDetails.userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to process tip",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(tip)
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Tip fetched successfully",
+		Data:    tip,
+	})
 }
