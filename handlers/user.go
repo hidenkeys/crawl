@@ -195,7 +195,9 @@ func (h *Handlers) GetUsersUserId(c *fiber.Ctx, userId types.UUID) error {
 			_ = v
 		}
 	}
-	if !isAdmin {
+
+	// Verify the requesting user is updating their own profile
+	if !isAdmin || detailsFromToken.userID != userId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
 			Message: "Unauthorized",
