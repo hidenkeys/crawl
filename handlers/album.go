@@ -16,7 +16,11 @@ func (h *Handlers) GetAlbums(c *fiber.Ctx, params api.GetAlbumsParams) error {
 		})
 	}
 
-	return c.JSON(albums)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Albums fetched successfully",
+		Data:    albums,
+	})
 }
 
 func (h *Handlers) PostAlbums(c *fiber.Ctx) error {
@@ -82,13 +86,17 @@ func (h *Handlers) PostAlbums(c *fiber.Ctx) error {
 
 	createdAlbum, err := h.Album.CreateAlbum(c.Context(), modelAlbum)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to create album",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(createdAlbum)
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album created successfully",
+		Data:    createdAlbum,
+	})
 }
 
 func (h *Handlers) GetAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
@@ -100,7 +108,11 @@ func (h *Handlers) GetAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 		})
 	}
 
-	return c.JSON(album)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Albums fetched successfully",
+		Data:    album,
+	})
 }
 
 func (h *Handlers) PutAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
@@ -180,7 +192,11 @@ func (h *Handlers) PutAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 		})
 	}
 
-	return c.JSON(updatedAlbum)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album updated successfully",
+		Data:    updatedAlbum,
+	})
 }
 
 func (h *Handlers) DeleteAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
@@ -210,37 +226,49 @@ func (h *Handlers) DeleteAlbumsAlbumId(c *fiber.Ctx, albumId types.UUID) error {
 	}
 
 	if err := h.Album.DeleteAlbum(c.Context(), albumId); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to delete album",
 		})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album deleted successfully",
+		Data:    nil,
+	})
 }
 
 func (h *Handlers) GetAlbumsAlbumIdSongs(c *fiber.Ctx, albumId types.UUID) error {
 	songs, err := h.Album.GetAlbumSongs(c.Context(), albumId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch album songs",
 		})
 	}
 
-	return c.JSON(songs)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album songs fetched successfully",
+		Data:    songs,
+	})
 }
 
 func (h *Handlers) GetAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUID) error {
 	contributors, err := h.Album.GetAlbumContributors(c.Context(), albumId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch album contributors",
 		})
 	}
 
-	return c.JSON(contributors)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album contributors fetched successfully",
+		Data:    contributors,
+	})
 }
 
 func (h *Handlers) PostAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUID) error {
@@ -304,5 +332,9 @@ func (h *Handlers) PostAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUI
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON("Added Contributor")
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album Contributor added successfully",
+		Data:    nil,
+	})
 }

@@ -53,11 +53,15 @@ func (h *Handlers) PostStreams(c *fiber.Ctx) error {
 	}
 
 	if err := h.Stream.RecordStream(c.Context(), stream); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to record stream",
 		})
 	}
 
-	return c.SendStatus(fiber.StatusCreated)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Stream posted successfully",
+		Data:    nil,
+	})
 }

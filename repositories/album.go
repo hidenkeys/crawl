@@ -73,3 +73,7 @@ func (r *AlbumRepository) SearchAlbums(query *string, artist *string, genre *str
 	err := dbQuery.Find(&albums).Error
 	return albums, err
 }
+
+func (r *AlbumRepository) FlagContent(albumID uuid.UUID) error {
+	return r.DB.Model(&models.Album{}).Where("id = ?", albumID).Update("is_flagged", true).Error
+}

@@ -16,7 +16,11 @@ func (h *Handlers) GetSongs(c *fiber.Ctx, params api.GetSongsParams) error {
 		})
 	}
 
-	return c.JSON(songs)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Songs fetched successfully",
+		Data:    songs,
+	})
 }
 
 func (h *Handlers) PostSongs(c *fiber.Ctx) error {
@@ -115,7 +119,11 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(createdSong)
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song posted successfully",
+		Data:    createdSong,
+	})
 }
 
 func (h *Handlers) GetSongsSongId(c *fiber.Ctx, songId types.UUID) error {
@@ -127,7 +135,11 @@ func (h *Handlers) GetSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 		})
 	}
 
-	return c.JSON(song)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song fetched succeessfully",
+		Data:    song,
+	})
 }
 
 func (h *Handlers) PutSongsSongId(c *fiber.Ctx, songId types.UUID) error {
@@ -212,7 +224,11 @@ func (h *Handlers) PutSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 		})
 	}
 
-	return c.JSON(updatedSong)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song fetched successfully",
+		Data:    updatedSong,
+	})
 }
 
 func (h *Handlers) DeleteSongsSongId(c *fiber.Ctx, songId types.UUID) error {
@@ -248,7 +264,11 @@ func (h *Handlers) DeleteSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 		})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song deleted successfully",
+		Data:    nil,
+	})
 }
 
 func (h *Handlers) GetSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) error {
@@ -260,7 +280,11 @@ func (h *Handlers) GetSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) e
 		})
 	}
 
-	return c.JSON(contributors)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song contributors fetched successfully",
+		Data:    contributors,
+	})
 }
 
 func (h *Handlers) PostSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) error {
@@ -324,5 +348,9 @@ func (h *Handlers) PostSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) 
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON("Added Song contributor")
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song contributor added successfully",
+		Data:    nil,
+	})
 }

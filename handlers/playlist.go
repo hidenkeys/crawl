@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crawl/api"
+	"crawl/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oapi-codegen/runtime/types"
 )
@@ -9,9 +10,9 @@ import (
 func (h *Handlers) GetPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) error {
 	playlist, err := h.Playlist.GetPlaylistByID(c.Context(), playlistId)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(api.Error{
-			Code:    fiber.StatusNotFound,
-			Message: "Playlist not found",
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "An error occurred or Playlist not found",
 		})
 	}
 
@@ -26,7 +27,11 @@ func (h *Handlers) GetPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 		}
 	}
 
-	return c.JSON(playlist)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Playlist fetched successfully",
+		Data:    playlist,
+	})
 }
 
 func (h *Handlers) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UUID) error {
@@ -72,13 +77,17 @@ func (h *Handlers) PostPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.U
 	}
 
 	if err := h.Playlist.AddSongToPlaylist(c.Context(), playlistId, songReq.SongId); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to add song to playlist",
 		})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Added song to playlist",
+		Data:    nil,
+	})
 }
 
 func (h *Handlers) DeletePlaylistsPlaylistIdSongsSongId(c *fiber.Ctx, playlistId types.UUID, songId types.UUID) error {
@@ -113,7 +122,11 @@ func (h *Handlers) DeletePlaylistsPlaylistIdSongsSongId(c *fiber.Ctx, playlistId
 		})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song removed from playlist",
+		Data:    nil,
+	})
 }
 
 func (h *Handlers) GetPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UUID) error {
@@ -138,13 +151,17 @@ func (h *Handlers) GetPlaylistsPlaylistIdSongs(c *fiber.Ctx, playlistId types.UU
 
 	songs, err := h.Playlist.GetPlaylistSongs(c.Context(), playlistId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
-			Message: "Failed to fetch playlist songs",
+		return c.Status(fiber.StatusNotFound).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "Failed to fetch playlist songs or no songs found in playlist",
 		})
 	}
 
-	return c.JSON(songs)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Playlist songs fetched successfully",
+		Data:    songs,
+	})
 }
 
 func (h *Handlers) PutPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) error {
@@ -199,13 +216,17 @@ func (h *Handlers) PutPlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) e
 
 	updatedPlaylist, err := h.Playlist.UpdatePlaylist(c.Context(), playlistId, playlist)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to update playlist",
 		})
 	}
 
-	return c.JSON(updatedPlaylist)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Playlist updated successfully",
+		Data:    updatedPlaylist,
+	})
 }
 
 func (h *Handlers) DeletePlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID) error {
@@ -234,11 +255,15 @@ func (h *Handlers) DeletePlaylistsPlaylistId(c *fiber.Ctx, playlistId types.UUID
 	}
 
 	if err := h.Playlist.DeletePlaylist(c.Context(), playlistId); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to delete playlist",
 		})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Playlist deleted successfully",
+		Data:    nil,
+	})
 }
