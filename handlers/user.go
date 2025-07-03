@@ -121,15 +121,35 @@ func (h *Handlers) PostUsers(c *fiber.Ctx) error {
 
 	println("After parse: " + newUser.LastName)
 
-	createdUser, err := h.User.Create(c.Context(), newUser)
+	_, err = h.User.Create(c.Context(), newUser)
 	if err != nil {
 		return c.Status(fiber.StatusOK).JSON(api.Error{
 			Code:    04,
 			Message: "Failed to create user: " + err.Error(),
 		})
 	}
+	var loginReq api.PostLoginJSONBody
+	loginReq.Password = *userReq.Password
+	loginReq.Email = userReq.Email
 
-	return c.Status(fiber.StatusCreated).JSON(createdUser)
+	token, err := h.Auth.Login(c.Context(), loginReq)
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Invalid credentials",
+		})
+	}
+
+	/*return c.JSON(fiber.Map{
+		"token": token,
+	})*/
+	return c.Status(fiber.StatusOK).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Login Successful",
+		Data:    token,
+	})
+
+	//return c.Status(fiber.StatusCreated).JSON(createdUser)
 }
 
 func (h *Handlers) GetUsersUserId(c *fiber.Ctx, userId types.UUID) error {

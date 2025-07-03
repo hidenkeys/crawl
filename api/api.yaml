@@ -295,7 +295,7 @@ components:
           example: "https://cdn.musicapp.com/songs/789/preview.mp3"
         releaseDate:
           type: string
-          format: date
+          format: date-time
           example: "2023-05-15"
         artists_names:
           type: array
@@ -362,7 +362,7 @@ components:
           example: "https://cdn.musicapp.com/albums/101/cover.jpg"
         releaseDate:
           type: string
-          format: date
+          format: date-time
           example: "2023-01-20"
         createdAt:
           type: string
@@ -616,6 +616,8 @@ paths:
                   data:
                     type: object
                     properties:
+                      token:
+                        type: string
                       user:
                         $ref: '#/components/schemas/User'
         '400':

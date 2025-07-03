@@ -7,12 +7,17 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
+type MediaItem struct {
+	Type  string        `json:"type"` // "song" or "album"
+	Song  *models.Song  `json:"song,omitempty"`
+	Album *models.Album `json:"album,omitempty"`
+}
+
 type GlobalSearch struct {
-	songs     []models.Song
-	albums    []models.Album
-	artists   []models.Artist
-	genre     []models.Genre
-	playlists []models.Playlist
+	Media     []MediaItem       `json:"media"`
+	Artists   []models.Artist   `json:"artists"`
+	Genre     []models.Genre    `json:"genre"`
+	Playlists []models.Playlist `json:"playlists"`
 }
 
 func (h *Handlers) GetSearch(c *fiber.Ctx, params api.GetSearchParams) error {
@@ -22,12 +27,19 @@ func (h *Handlers) GetSearch(c *fiber.Ctx, params api.GetSearchParams) error {
 	artists, _ := h.Artist.SearchArtistsByName(c.Context(), params.Query, *params.Page, *params.Limit)
 	albums, _ := h.Album.SearchAlbums(c.Context(), &params.Query, nil, nil, nil, params.Page, params.Limit)
 
-	result := GlobalSearch{
-		songs:     songs,
-		artists:   artists,
-		albums:    albums,
-		genre:     genres,
-		playlists: playlists,
+	media := make([]MediaItem, 0, len(songs)+len(albums))
+	for _, song := range songs {
+		media = append(media, MediaItem{Type: "song", Song: &song})
+	}
+	for _, album := range albums {
+		media = append(media, MediaItem{Type: "album", Album: &album})
+	}
+
+	result := &GlobalSearch{
+		Media:     media,
+		Artists:   artists,
+		Genre:     genres,
+		Playlists: playlists,
 	}
 
 	return c.JSON(result)
@@ -36,8 +48,8 @@ func (h *Handlers) GetSearch(c *fiber.Ctx, params api.GetSearchParams) error {
 func (h *Handlers) GetSearchAlbums(c *fiber.Ctx, params api.GetSearchAlbumsParams) error {
 	albums, err := h.Album.SearchAlbums(c.Context(), params.Query, params.Artist, params.Genre, (*string)(params.Sort), params.Page, params.Limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to search albums",
 		})
 	}
@@ -48,8 +60,8 @@ func (h *Handlers) GetSearchAlbums(c *fiber.Ctx, params api.GetSearchAlbumsParam
 func (h *Handlers) GetSearchArtists(c *fiber.Ctx, params api.GetSearchArtistsParams) error {
 	artists, err := h.Artist.SearchArtistsByName(c.Context(), *params.Query, *params.Page, *params.Limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to search artists",
 		})
 	}
@@ -73,8 +85,8 @@ func (h *Handlers) GetSearchPlaylists(c *fiber.Ctx, params api.GetSearchPlaylist
 	playlists, _, err := h.Playlist.SearchPlaylists(c.Context(), params.Query, params.Owner, params.IsPublic, (*string)(params.Sort), *params.Page, *params.Limit)
 	if err != nil {
 		log.Infof("Error occured: %s", err.Error())
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to search playlists",
 		})
 	}
@@ -85,8 +97,8 @@ func (h *Handlers) GetSearchPlaylists(c *fiber.Ctx, params api.GetSearchPlaylist
 func (h *Handlers) GetSearchSongs(c *fiber.Ctx, params api.GetSearchSongsParams) error {
 	songs, err := h.Song.SearchSongs(c.Context(), params.Query, params.Artist, params.Genre, (*string)(params.Sort), (*string)(params.Order), params.Page, params.Limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to search songs",
 		})
 	}

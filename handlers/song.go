@@ -10,8 +10,8 @@ import (
 func (h *Handlers) GetSongs(c *fiber.Ctx, params api.GetSongsParams) error {
 	songs, err := h.Song.GetAllSongs(c.Context(), params.Page, params.Limit, params.Genre, params.Artist, params.Album)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch songs",
 		})
 	}
@@ -109,8 +109,8 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 
 	createdSong, err := h.Song.CreateSong(c.Context(), song)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to create song",
 		})
 	}
@@ -206,8 +206,8 @@ func (h *Handlers) PutSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 
 	updatedSong, err := h.Song.UpdateSong(c.Context(), songId, song)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to update song",
 		})
 	}
@@ -242,8 +242,8 @@ func (h *Handlers) DeleteSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 	}
 
 	if err := h.Song.DeleteSong(c.Context(), songId); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to delete song",
 		})
 	}
@@ -254,8 +254,8 @@ func (h *Handlers) DeleteSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 func (h *Handlers) GetSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) error {
 	contributors, err := h.Song.GetSongContributors(c.Context(), songId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to fetch song contributors",
 		})
 	}
@@ -318,8 +318,8 @@ func (h *Handlers) PostSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) 
 
 	err = h.Song.AddSongContributor(c.Context(), songId, contributor)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to add contributor",
 		})
 	}
