@@ -98,7 +98,6 @@ func (s *authService) generateJWTToken(user *models.User) (string, error) {
 	if err != nil {
 		return "", errors.New(err.Error())
 	}
-	println(role[0].ID.String())
 	claims := jwt.MapClaims{
 		"user_id": user.ID.String(),
 		"email":   user.Email,
