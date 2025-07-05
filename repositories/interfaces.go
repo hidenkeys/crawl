@@ -46,6 +46,7 @@ type ISongRepository interface {
 	AddPlayCount(id uuid.UUID, count int) error
 	Search(query, artist, genre *string, sort, order *string, offset, limit int) ([]models.Song, error)
 	FlagContent(songID uuid.UUID) error
+	AddLikes(id uuid.UUID, count int) error
 }
 
 type IAlbumRepository interface {
@@ -54,6 +55,7 @@ type IAlbumRepository interface {
 	GetByArtist(artistID uuid.UUID) ([]models.Album, error)
 	SearchAlbums(query *string, artist *string, genre *string, sort *string, page *int, limit *int) ([]models.Album, error)
 	FlagContent(albumID uuid.UUID) error
+	AddLikes(id uuid.UUID, count int) error
 }
 
 type IPlaylistRepository interface {

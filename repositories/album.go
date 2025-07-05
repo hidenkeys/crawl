@@ -33,6 +33,13 @@ func (r *AlbumRepository) GetByArtist(artistID uuid.UUID) ([]models.Album, error
 	return albums, err
 }
 
+func (r *AlbumRepository) AddLikes(id uuid.UUID, count int) error {
+	return r.DB.Model(&models.Album{}).
+		Where("id = ?", id).
+		Update("likes", gorm.Expr("likes + ?", count)).
+		Error
+}
+
 func (r *AlbumRepository) SearchAlbums(query *string, artist *string, genre *string, sort *string, page *int, limit *int) ([]models.Album, error) {
 	// Implementation would depend on your specific search requirements
 	// This is a basic example that would need to be expanded

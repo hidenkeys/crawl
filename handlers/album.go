@@ -338,3 +338,25 @@ func (h *Handlers) PostAlbumsAlbumIdContributors(c *fiber.Ctx, albumId types.UUI
 		Data:    nil,
 	})
 }
+
+func (h *Handlers) PostAlbumsLikeAlbumId(c *fiber.Ctx, albumId api.AlbumId) error {
+	_, err := h.getDetailsFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	err = h.Album.LikeAlbum(c.Context(), albumId)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "Album not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album liked successfully",
+		Data:    nil,
+	})
+}

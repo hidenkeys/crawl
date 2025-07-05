@@ -49,19 +49,22 @@ func (h *Handlers) GetSearch(c *fiber.Ctx, params api.GetSearchParams) error {
 	})
 }
 
-func (h *Handlers) GetSearchAlbums(c *fiber.Ctx, params api.GetSearchAlbumsParams) error {
-	albums, err := h.Album.SearchAlbums(c.Context(), params.Query, params.Artist, params.Genre, (*string)(params.Sort), params.Page, params.Limit)
-	if err != nil {
-		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
-			Code:    fiber.StatusExpectationFailed,
-			Message: "Failed to search albums",
-		})
+func (h *Handlers) GetSearchMedia(c *fiber.Ctx, params api.GetSearchMediaParams) error {
+	songs, _ := h.Song.SearchSongs(c.Context(), params.Query, nil, nil, nil, nil, params.Page, params.Limit)
+	albums, _ := h.Album.SearchAlbums(c.Context(), params.Query, nil, nil, nil, params.Page, params.Limit)
+
+	media := make([]MediaItem, 0, len(songs)+len(albums))
+	for _, song := range songs {
+		media = append(media, MediaItem{Type: "song", Song: &song})
+	}
+	for _, album := range albums {
+		media = append(media, MediaItem{Type: "album", Album: &album})
 	}
 
 	return c.JSON(models.Response{
 		Code:    fiber.StatusOK,
-		Message: "Search fetched successfully",
-		Data:    albums,
+		Message: "Media fetched successfully",
+		Data:    media,
 	})
 }
 
@@ -111,21 +114,5 @@ func (h *Handlers) GetSearchPlaylists(c *fiber.Ctx, params api.GetSearchPlaylist
 		Code:    fiber.StatusOK,
 		Message: "Search fetched successfully",
 		Data:    playlists,
-	})
-}
-
-func (h *Handlers) GetSearchSongs(c *fiber.Ctx, params api.GetSearchSongsParams) error {
-	songs, err := h.Song.SearchSongs(c.Context(), params.Query, params.Artist, params.Genre, (*string)(params.Sort), (*string)(params.Order), params.Page, params.Limit)
-	if err != nil {
-		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
-			Code:    fiber.StatusExpectationFailed,
-			Message: "Failed to search songs",
-		})
-	}
-
-	return c.JSON(models.Response{
-		Code:    fiber.StatusOK,
-		Message: "Search fetched successfully",
-		Data:    songs,
 	})
 }

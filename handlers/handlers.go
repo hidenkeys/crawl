@@ -33,6 +33,6 @@ func NewHandlers(db *gorm.DB) *Handlers {
 		Stream:     services.NewStreamService(repos.Stream, repos.Song),
 		Tip:        services.NewTipService(repos.Tip, repos.User, repos.Artist),
 		Moderation: services.NewModerationService(repos.Moderation),
-		Auth:       services.NewAuthService(repos.User, repos.Role),
+		Auth:       services.NewAuthService(repos.User, repos.Role, repos.Artist),
 	}
 }

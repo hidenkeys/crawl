@@ -309,6 +309,11 @@ components:
           type: integer
           example: 1250000
           readOnly: true
+        lyrics:
+          type: string
+        likes:
+          type: number
+          readOnly: true
         is_flagged:
           type: boolean
           readOnly: true
@@ -1124,6 +1129,34 @@ paths:
         '400':
           description: Bad request
 
+  /songs/like/{songId}:
+    post:
+      tags:
+        - Songs
+      summary: Like a song
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/songId'
+      responses:
+        '200':
+          description: Like a song
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+        '404':
+          description: Song not found
+
   # Albums
   /albums:
     get:
@@ -1383,6 +1416,34 @@ paths:
                         $ref: '#/components/schemas/Contributor'
         '400':
           description: Bad request
+
+  /albums/like/{albumId}:
+    post:
+      tags:
+        - Albums
+      summary: Like an album by ID
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/albumId'
+      responses:
+        '200':
+          description: Like an album
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+        '404':
+          description: Song not found
 
   # Genres
   /genres:
@@ -2251,11 +2312,11 @@ paths:
                             type: integer
                             example: 42
 
-  /search/songs:
+  /search/media:
     get:
       tags:
         - Search
-      summary: Search songs with advanced filters
+      summary: Search songs or albums with advanced filters
       parameters:
         - name: query
           in: query
@@ -2290,92 +2351,7 @@ paths:
         - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          description: List of matching songs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Song'
-                  total:
-                    type: integer
-                    example: 25
-                  facets:
-                    type: object
-                    properties:
-                      artists:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            name:
-                              type: string
-                            count:
-                              type: integer
-                      genres:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            name:
-                              type: string
-                            count:
-                              type: integer
-                      albums:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            name:
-                              type: string
-                            count:
-                              type: integer
-
-  /search/albums:
-    get:
-      tags:
-        - Search
-      summary: Search albums with advanced filters
-      parameters:
-        - name: query
-          in: query
-          description: Search term (album title)
-          schema:
-            type: string
-        - name: artist
-          in: query
-          description: Filter by artist name or ID
-          schema:
-            type: string
-        - name: genre
-          in: query
-          description: Filter by genre name or ID
-          schema:
-            type: string
-        - name: sort
-          in: query
-          description: Sort field (popularity,release_date,price)
-          schema:
-            type: string
-            enum: [ popularity, release_date, price, title ]
-            default: popularity
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          description: List of matching albums
+          description: List of matching songs and albums
           content:
             application/json:
               schema:
@@ -2390,15 +2366,13 @@ paths:
                   data:
                     type: object
                     properties:
-                      result:
-                        type: object
-                        properties:
-                          results:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/Album'
-                          total:
-                            type: integer
+                      media:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
+
+
+
 
   /search/artists:
     get:

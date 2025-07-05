@@ -19,6 +19,7 @@ type SongService interface {
 	AddSongContributor(ctx context.Context, songID uuid.UUID, contributor *models.SongContributor) error
 	RecordStream(ctx context.Context, stream *models.Stream) error
 	FlagSong(ctx context.Context, songID uuid.UUID) error
+	LikeSong(ctx context.Context, songID uuid.UUID) error
 }
 
 type songService struct {
@@ -267,6 +268,14 @@ func (s *songService) RecordStream(ctx context.Context, stream *models.Stream) e
 
 func (s *songService) FlagSong(ctx context.Context, songID uuid.UUID) error {
 	err := s.songRepo.FlagContent(songID)
+	if err != nil {
+		return errors.New("song not found")
+	}
+	return nil
+}
+
+func (s *songService) LikeSong(ctx context.Context, songID uuid.UUID) error {
+	err := s.songRepo.AddLikes(songID, 1)
 	if err != nil {
 		return errors.New("song not found")
 	}

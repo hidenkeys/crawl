@@ -354,3 +354,25 @@ func (h *Handlers) PostSongsSongIdContributors(c *fiber.Ctx, songId types.UUID) 
 		Data:    nil,
 	})
 }
+
+func (h *Handlers) PostSongsLikeSongId(c *fiber.Ctx, songId api.SongId) error {
+	_, err := h.getDetailsFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+	err = h.Song.LikeSong(c.Context(), songId)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(api.Error{
+			Code:    fiber.StatusNotFound,
+			Message: "Song not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Song liked successfully",
+		Data:    nil,
+	})
+}

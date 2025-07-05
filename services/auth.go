@@ -22,8 +22,9 @@ type AuthService interface {
 }
 
 type AuthResponse struct {
-	Token string      `json:"token"`
-	User  models.User `json:"user"`
+	Token  string        `json:"token"`
+	User   models.User   `json:"user"`
+	Artist models.Artist `json:"artist"`
 }
 
 type Claims struct {
@@ -36,11 +37,12 @@ type Claims struct {
 type authService struct {
 	userRepo    repositories.IUserRepository
 	roleRepo    repositories.IRoleRepository
+	artistRepo  repositories.IArtistRepository
 	jwtSecret   string
 	tokenExpiry time.Duration
 }
 
-func NewAuthService(userRepo repositories.IUserRepository, roleRepo repositories.IRoleRepository) AuthService {
+func NewAuthService(userRepo repositories.IUserRepository, roleRepo repositories.IRoleRepository, artistRepo repositories.IArtistRepository) AuthService {
 	// Read JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -58,6 +60,7 @@ func NewAuthService(userRepo repositories.IUserRepository, roleRepo repositories
 	return &authService{
 		userRepo:    userRepo,
 		roleRepo:    roleRepo,
+		artistRepo:  artistRepo,
 		jwtSecret:   jwtSecret,
 		tokenExpiry: tokenExpiry,
 	}
@@ -84,11 +87,20 @@ func (s *authService) Login(ctx context.Context, credentials api.PostLoginJSONBo
 		log.Warn("Failed to generate token")
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
+	var artist *models.Artist
+	if user.IsArtist {
+		artist, err = s.artistRepo.GetWithUserId(user.ID)
+		if err != nil {
+			log.Warnf("Artist profile not for for user login with userID: %s", user.ID)
+			return nil, fmt.Errorf("author profile not found: %w", err)
+		}
+	}
 
 	// 4. Return response
 	return &AuthResponse{
-		Token: token,
-		User:  *user,
+		Token:  token,
+		User:   *user,
+		Artist: *artist,
 	}, nil
 }
 

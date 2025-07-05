@@ -52,6 +52,13 @@ func (r *SongRepository) AddPlayCount(id uuid.UUID, count int) error {
 		Error
 }
 
+func (r *SongRepository) AddLikes(id uuid.UUID, count int) error {
+	return r.DB.Model(&models.Song{}).
+		Where("id = ?", id).
+		Update("likes", gorm.Expr("likes + ?", count)).
+		Error
+}
+
 func (r *SongRepository) GetByAlbum(albumID uuid.UUID) ([]models.Song, error) {
 	var songs []models.Song
 	err := r.DB.Where("album_id = ?", albumID).Find(&songs).Error
