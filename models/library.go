@@ -14,6 +14,9 @@ type SongPurchase struct {
 	Currency            string    `gorm:"size:3;default:'USD'" json:"currency"`
 	PaymentStatus       string    `gorm:"size:20;default:'pending'" json:"payment_status"`
 	StripeTransactionID string    `gorm:"size:255" json:"stripe_transaction_id"`
+	PaymentMethod       string    `gorm:"not null"`
+	IdempotencyKey      string    `gorm:"uniqueIndex;size:255"`
+	Metadata            JSON      `gorm:"type:jsonb"`
 	User                User      `gorm:"foreignKey:UserID" json:"-"`
 	Song                Song      `gorm:"foreignKey:SongID" json:"song"`
 }
@@ -26,6 +29,9 @@ type AlbumPurchase struct {
 	Currency            string    `gorm:"size:3;default:'USD'" json:"currency"`
 	PaymentStatus       string    `gorm:"size:20;default:'pending'" json:"payment_status"`
 	StripeTransactionID string    `gorm:"size:255" json:"stripe_transaction_id"`
+	PaymentMethod       string    `gorm:"not null"`
+	IdempotencyKey      string    `gorm:"uniqueIndex;size:255"`
+	Metadata            JSON      `gorm:"type:jsonb"`
 	User                User      `gorm:"foreignKey:UserID" json:"-"`
 	Album               Album     `gorm:"foreignKey:AlbumID" json:"album"`
 }
@@ -57,4 +63,20 @@ type PlaylistSong struct {
 	Position   int            `gorm:"not null" json:"position"`
 	AddedAt    time.Time      `json:"added_at"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+type JSON map[string]interface{}
+
+func (t *SongPurchase) BeforeCreate(tx *gorm.DB) error {
+	if t.ID == uuid.Nil {
+		t.ID = uuid.New()
+	}
+	return nil
+}
+
+func (t *AlbumPurchase) BeforeCreate(tx *gorm.DB) error {
+	if t.ID == uuid.Nil {
+		t.ID = uuid.New()
+	}
+	return nil
 }
