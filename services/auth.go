@@ -22,9 +22,14 @@ type AuthService interface {
 }
 
 type AuthResponse struct {
-	Token  string        `json:"token"`
-	User   models.User   `json:"user"`
-	Artist models.Artist `json:"artist"`
+	Token  string         `json:"token"`
+	User   models.User    `json:"user"`
+	Artist *models.Artist `json:"artist"`
+}
+
+type AuthResponse2 struct {
+	Token string      `json:"token"`
+	User  models.User `json:"user"`
 }
 
 type Claims struct {
@@ -96,11 +101,18 @@ func (s *authService) Login(ctx context.Context, credentials api.PostLoginJSONBo
 		}
 	}
 
+	if artist != nil {
+		return &AuthResponse{
+			Token:  token,
+			User:   *user,
+			Artist: artist,
+		}, nil
+	}
+
 	// 4. Return response
 	return &AuthResponse{
-		Token:  token,
-		User:   *user,
-		Artist: *artist,
+		Token: token,
+		User:  *user,
 	}, nil
 }
 

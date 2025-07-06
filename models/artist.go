@@ -7,6 +7,7 @@ type Artist struct {
 	UserID           uuid.UUID `gorm:"uniqueIndex;not null" json:"user_id"`
 	ArtistName       string    `gorm:"size:100;not null" json:"artist_name"`
 	Verified         bool      `gorm:"default:false" json:"verified"`
+	SongsUploaded    int       `gorm:"default:0" json:"songs_uploaded"`
 	WalletBalance    float64   `gorm:"type:decimal(10,2);default:0.00" json:"wallet_balance"`
 	StripeAccountID  string    `gorm:"size:255" json:"-"`
 	MonthlyListeners int       `gorm:"default:0" json:"monthly_listeners"`

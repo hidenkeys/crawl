@@ -1,6 +1,9 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type ArtistTip struct {
 	BaseModel
@@ -11,6 +14,9 @@ type ArtistTip struct {
 	Currency            string    `gorm:"size:3;default:'NGN'" json:"currency"`
 	PaymentStatus       string    `gorm:"size:20;default:'completed'" json:"payment_status"`
 	StripeTransactionID string    `gorm:"size:255" json:"stripe_transaction_id"`
+	PaymentMethod       string    `gorm:"not null"`
+	IdempotencyKey      string    `gorm:"uniqueIndex;size:255"`
+	Metadata            JSON      `gorm:"type:jsonb"`
 	Sender              User      `gorm:"foreignKey:SenderID" json:"sender"`
 	Artist              Artist    `gorm:"foreignKey:ArtistID" json:"artist"`
 }
@@ -35,4 +41,11 @@ type MonthlyRoyalty struct {
 	Currency   string    `gorm:"size:3;default:'NGN'" json:"currency"`
 	PaidStatus bool      `gorm:"default:false" json:"paid_status"`
 	Artist     Artist    `gorm:"foreignKey:ArtistID" json:"artist"`
+}
+
+func (t *ArtistTip) BeforeCreate(tx *gorm.DB) error {
+	if t.ID == uuid.Nil {
+		t.ID = uuid.New()
+	}
+	return nil
 }
