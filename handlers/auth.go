@@ -86,7 +86,7 @@ import (
 func (h *Handlers) PostLogin(c *fiber.Ctx) error {
 	var loginReq api.PostLoginJSONBody
 	if err := c.BodyParser(&loginReq); err != nil {
-		return c.Status(fiber.StatusOK).JSON(api.Error{
+		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
 			Message: "Invalid request body",
 		})
@@ -94,7 +94,7 @@ func (h *Handlers) PostLogin(c *fiber.Ctx) error {
 
 	token, err := h.Auth.Login(c.Context(), loginReq)
 	if err != nil {
-		return c.Status(fiber.StatusOK).JSON(api.Error{
+		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
 			Code:    fiber.StatusUnauthorized,
 			Message: "Invalid credentials",
 		})
