@@ -83,6 +83,10 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 		song.AlbumID = songReq.AlbumId
 	}
 
+	if songReq.Lyrics != nil {
+		song.Lyrics = songReq.Lyrics
+	}
+
 	if songReq.CoverImageUrl != nil {
 		song.CoverImageURL = *songReq.CoverImageUrl
 	}
@@ -116,6 +120,14 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
 			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to create song",
+		})
+	}
+
+	err = h.Artist.AddUploadedSongsCount(c.Context(), artist.ID)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to increase song upload count for artist",
 		})
 	}
 

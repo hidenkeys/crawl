@@ -55,3 +55,10 @@ func (r *ArtistRepository) SearchByName(query string, limit int, offset int) ([]
 		Error
 	return artists, err
 }
+
+func (r *ArtistRepository) AddSongUploadCount(id uuid.UUID, count int) error {
+	return r.DB.Model(&models.Artist{}).
+		Where("id = ?", id).
+		Update("songs_uploaded", gorm.Expr("songs_uploaded + ?", count)).
+		Error
+}
