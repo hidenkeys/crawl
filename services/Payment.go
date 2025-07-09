@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/checkout/session"
 	"github.com/stripe/stripe-go/v76/webhook"
@@ -33,10 +32,6 @@ func NewPaymentService(
 	albumRepo repositories.IAlbumRepository,
 	songRepo repositories.ISongRepository,
 ) *paymentService {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	return &paymentService{
 		albumPurchaseRepo: albumPurchaseRepo,
