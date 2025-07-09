@@ -3,6 +3,7 @@ package handlers
 import (
 	"crawl/repositories"
 	"crawl/services"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,15 @@ type Handlers struct {
 	Tip        services.TipService
 	Moderation services.ModerationService
 	Auth       services.AuthService
+	Payment    services.PaymentService
+}
+
+func (h *Handlers) PostStripeWebhook(c *fiber.Ctx) error {
+	if err := h.Payment.HandleWebhook(c.Body(), c.Get("Stripe-Signature")); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON("Successful")
 }
 
 func NewHandlers(db *gorm.DB) *Handlers {
@@ -34,5 +44,6 @@ func NewHandlers(db *gorm.DB) *Handlers {
 		Tip:        services.NewTipService(repos.Tip, repos.User, repos.Artist),
 		Moderation: services.NewModerationService(repos.Moderation),
 		Auth:       services.NewAuthService(repos.User, repos.Role, repos.Artist),
+		Payment:    services.NewPaymentService(repos.AlbumPurchase, repos.SongPurchase, repos.Album, repos.Song),
 	}
 }

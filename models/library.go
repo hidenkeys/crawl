@@ -65,7 +65,7 @@ type PlaylistSong struct {
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-type JSON map[string]interface{}
+type JSON map[string]string
 
 func (t *SongPurchase) BeforeCreate(tx *gorm.DB) error {
 	if t.ID == uuid.Nil {

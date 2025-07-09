@@ -3,6 +3,7 @@ package handlers
 import (
 	"crawl/api"
 	"crawl/models"
+	"crawl/services"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -78,12 +79,12 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 	if userDetails.userID != purchaseReq.UserId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,
-			Message: "You can only purchase for yourself",
+			Message: "Invalid user ID",
 		})
 	}
 
 	// Verify the song exists
-	_, err = h.Song.GetSongByID(c.Context(), purchaseReq.SongId)
+	song, err := h.Song.GetSongByID(c.Context(), purchaseReq.SongId)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
@@ -94,15 +95,44 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 	// Process payment
 	purchase, err := h.Purchase.PurchaseSong(c.Context(), purchaseReq)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(api.Error{
-			Code:    fiber.StatusInternalServerError,
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
 			Message: "Failed to process purchase",
+		})
+	}
+
+	checkoutReq := services.CreateCheckoutSessionRequest{
+		Name:     song.Title,
+		ID:       purchase.ID.String(),
+		Price:    int64(song.Price),
+		ItemType: "song",
+		UserID:   userDetails.userID.String(),
+	}
+
+	session, err := h.Payment.CreateCheckoutSession(checkoutReq)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to create checkout session",
+		})
+	}
+
+	purchase.StripeTransactionID = session.StripeSessionID
+	purchase.Metadata = session.MetaData
+
+	_, err = h.Purchase.UpdatePurchaseSong(c.Context(), *purchase)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to update purchase",
 		})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(models.Response{
 		Code:    fiber.StatusOK,
 		Message: "Song purchased successfully",
-		Data:    purchase,
+		Data: map[string]string{
+			"url": session.PaymentUrl,
+		},
 	})
 }
