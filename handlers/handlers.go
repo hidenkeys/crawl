@@ -23,11 +23,12 @@ type Handlers struct {
 }
 
 func (h *Handlers) PostStripeWebhook(c *fiber.Ctx) error {
-	if err := h.Payment.HandleWebhook(c.Body(), c.Get("Stripe-Signature")); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.Status(fiber.StatusOK).JSON("Successful")
+	//if err := h.Payment.HandleWebhook(c.Body(), c.Get("Stripe-Signature")); err != nil {
+	//	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	//}
+	//
+	//return c.Status(fiber.StatusOK).JSON("Successful")
+	panic("Implement me")
 }
 
 func NewHandlers(db *gorm.DB) *Handlers {
