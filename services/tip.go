@@ -68,8 +68,8 @@ func (s *tipService) SendTip(ctx context.Context, tip api.PostTipsJSONBody, send
 		ArtistID:            tip.ArtistId,
 		Amount:              tip.Amount,
 		Message:             *tip.Message,
-		Currency:            "NGN",
-		PaymentStatus:       "completed",
+		Currency:            "USD",
+		PaymentStatus:       "pending",
 		StripeTransactionID: tip.PaymentMethodId,
 	}
 

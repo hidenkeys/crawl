@@ -42,7 +42,7 @@ func (h *Handlers) PostAlbums(c *fiber.Ctx) error {
 	}
 
 	// Verify the requesting user is the artist
-	artist, err := h.Artist.GetArtistByID(c.Context(), userDetails.userID)
+	artist, err := h.User.GetArtistByUserId(c.Context(), userDetails.userID)
 	if err != nil || artist.ID != albumReq.ArtistId {
 		return c.Status(fiber.StatusForbidden).JSON(api.Error{
 			Code:    fiber.StatusForbidden,

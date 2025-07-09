@@ -11,7 +11,7 @@ type ArtistTip struct {
 	ArtistID            uuid.UUID `gorm:"not null" json:"artist_id"`
 	Amount              int       `gorm:"not null;default:0" json:"amount"`
 	Message             string    `gorm:"type:text" json:"message"`
-	Currency            string    `gorm:"size:3;default:'NGN'" json:"currency"`
+	Currency            string    `gorm:"size:3;default:'USD'" json:"currency"`
 	PaymentStatus       string    `gorm:"size:20;default:'completed'" json:"payment_status"`
 	StripeTransactionID string    `gorm:"size:255" json:"stripe_transaction_id"`
 	PaymentMethod       string    `gorm:"not null"`
@@ -38,7 +38,7 @@ type MonthlyRoyalty struct {
 	Year       int       `gorm:"not null;index:idx_artist_month,unique" json:"year"`
 	Month      int       `gorm:"not null;index:idx_artist_month,unique" json:"month"`
 	Amount     int       `gorm:"not null;default:0" json:"amount"`
-	Currency   string    `gorm:"size:3;default:'NGN'" json:"currency"`
+	Currency   string    `gorm:"size:3;default:'USD'" json:"currency"`
 	PaidStatus bool      `gorm:"default:false" json:"paid_status"`
 	Artist     Artist    `gorm:"foreignKey:ArtistID" json:"artist"`
 }

@@ -1770,6 +1770,15 @@ paths:
         '400':
           description: Bad request
 
+  /stripe/webhook:
+    post:
+      tags:
+        - Purchases
+      summary: Handle Stripe webhook
+      responses:
+        '200':
+          description: Webhook handled
+
   # Playlists
   /users/{userId}/playlists:
     get:

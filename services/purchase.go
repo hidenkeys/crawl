@@ -71,8 +71,8 @@ func (s *purchaseService) PurchaseAlbum(ctx context.Context, purchase api.PostPu
 		UserID:              purchase.UserId,
 		AlbumID:             purchase.AlbumId,
 		PurchasePrice:       float64(album.Price),
-		Currency:            "NGN",
-		PaymentStatus:       "completed",
+		Currency:            "USD",
+		PaymentStatus:       "pending",
 		StripeTransactionID: purchase.PaymentMethodId,
 	}
 
@@ -169,8 +169,8 @@ func (s *purchaseService) PurchaseSong(ctx context.Context, purchase api.PostPur
 		UserID:              purchase.UserId,
 		SongID:              purchase.SongId,
 		PurchasePrice:       float64(song.Price),
-		Currency:            "NGN",
-		PaymentStatus:       "completed",
+		Currency:            "USD",
+		PaymentStatus:       "pending",
 		StripeTransactionID: purchase.PaymentMethodId,
 	}
 
