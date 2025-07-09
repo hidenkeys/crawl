@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crawl/api"
 	"crawl/repositories"
 	"crawl/services"
 	"github.com/gofiber/fiber/v2"
@@ -20,6 +21,11 @@ type Handlers struct {
 	Moderation services.ModerationService
 	Auth       services.AuthService
 	Payment    services.PaymentService
+}
+
+func (h *Handlers) GetArtistsArtistIdAlbums(c *fiber.Ctx, artistId api.ArtistId, params api.GetArtistsArtistIdAlbumsParams) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (h *Handlers) PostStripeWebhook(c *fiber.Ctx) error {

@@ -17,6 +17,7 @@ type ArtistService interface {
 	GetAllArtists(ctx context.Context, page *int, limit *int) ([]models.Artist, error)
 	UpdateArtist(ctx context.Context, artistID uuid.UUID, artist *models.Artist) (*models.Artist, error)
 	GetArtistSongs(ctx context.Context, artistID uuid.UUID, page *int, limit *int) ([]models.Song, error)
+	AddUploadedSongsCount(ctx context.Context, artistID uuid.UUID) error
 }
 
 type artistService struct {
@@ -133,4 +134,8 @@ func (s *artistService) GetArtistSongs(ctx context.Context, artistID uuid.UUID, 
 	}
 
 	return songs, nil
+}
+
+func (s *artistService) AddUploadedSongsCount(ctx context.Context, artistID uuid.UUID) error {
+	return s.artistRepo.AddSongUploadCount(artistID, 1)
 }

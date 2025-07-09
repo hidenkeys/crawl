@@ -31,7 +31,7 @@ type Song struct {
 	Likes         *int       `gorm:"default:0" json:"likes"`
 	Lyrics        *string    `gorm:"type:text" json:"lyrics"`
 	IsFlagged     bool       `gorm:"default:false" json:"is_flagged"`
-	Artist        Artist     `gorm:"foreignKey:ArtistID" json:"artist"`
+	Artist        Artist     `gorm:"foreignKey:ArtistID" json:"-"`
 	Album         *Album     `gorm:"foreignKey:AlbumID" json:"album,omitempty"`
 	Genre         *Genre     `gorm:"foreignKey:GenreID" json:"genre,omitempty"`
 	Contributors  []Artist   `gorm:"many2many:song_contributors;" json:"contributors,omitempty"`
@@ -48,7 +48,7 @@ type Album struct {
 	GenreID       *uuid.UUID `gorm:"index" json:"genre_id,omitempty"`
 	IsFlagged     bool       `gorm:"default:false" json:"is_flagged"`
 	Likes         *int       `gorm:"default:0" json:"likes"`
-	Artist        Artist     `gorm:"foreignKey:ArtistID" json:"artist"`
+	Artist        Artist     `gorm:"foreignKey:ArtistID" json:"-"`
 	Genre         *Genre     `gorm:"foreignKey:GenreID" json:"genre,omitempty"`
 	Songs         []Song     `gorm:"foreignKey:AlbumID" json:"songs,omitempty"`
 	Contributors  []Artist   `gorm:"many2many:album_contributors;" json:"contributors,omitempty"`

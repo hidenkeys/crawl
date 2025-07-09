@@ -892,6 +892,40 @@ paths:
         '404':
           description: Artist not found
 
+  /artists/{artistId}/albums:
+    get:
+      tags:
+        - Artists
+        - Album
+      summary: Get artist's albums
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of artist's albums
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Resource not found"
+                  data:
+                    type: object
+                    properties:
+                      artistList:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Album'
+        '404':
+          description: Artist not found
+
   # Songs
   /songs:
     get:

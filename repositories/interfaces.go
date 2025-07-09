@@ -35,6 +35,7 @@ type IArtistRepository interface {
 	GetWithAlbums(id uuid.UUID) (*models.Artist, error)
 	GetWithUserId(userID uuid.UUID) (*models.Artist, error)
 	SearchByName(query string, limit int, offset int) ([]models.Artist, error)
+	AddSongUploadCount(id uuid.UUID, count int) error
 }
 
 // ISongRepository song operations
