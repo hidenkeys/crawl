@@ -277,10 +277,6 @@ components:
         genreId:
           type: string
           format: uuid
-        duration:
-          type: integer
-          description: Duration in seconds
-          example: 237
         price:
           type: integer
           format: float
@@ -325,15 +321,30 @@ components:
           type: string
           format: date-time
           readOnly: true
+        order:
+          type: integer
+          description: Order of the song within an album
+          example: 1
       required:
         - title
         - artistId
         - artists_names
-        - duration
         - audioUrl
         - genreId
         - price
         - releaseDate
+    BulkAlbumRequest:
+      type: object
+      properties:
+        album:
+          $ref: '#/components/schemas/Album'
+        songs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Song'
+      required:
+        - album
+        - songs
 
     Album:
       type: object
@@ -346,6 +357,9 @@ components:
           type: string
           example: "Greatest Hits"
         artistId:
+          type: string
+          format: uuid
+        genreId:
           type: string
           format: uuid
         description:
@@ -1450,6 +1464,47 @@ paths:
                         $ref: '#/components/schemas/Contributor'
         '400':
           description: Bad request
+
+  /albums/bulk:
+    post:
+      tags:
+        - Albums
+      summary: Create an album with multiple songs
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkAlbumRequest'
+      responses:
+        '201':
+          description: Album and songs created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: "Album and songs created successfully"
+                  data:
+                    type: object
+                    properties:
+                      album:
+                        $ref: '#/components/schemas/Album'
+                      songs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Song'
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
 
   /albums/like/{albumId}:
     post:

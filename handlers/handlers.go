@@ -36,7 +36,7 @@ func NewHandlers(db *gorm.DB) *Handlers {
 	return &Handlers{
 		User:       services.NewUserService(repos.User, repos.Role, repos.Playlist, repos.Artist, repos.SongPurchase, repos.AlbumPurchase, repos.Stream),
 		Artist:     services.NewArtistService(repos.Artist, repos.Song, repos.User, repos.Role),
-		Album:      services.NewAlbumService(repos.Album, repos.AlbumContributor, repos.Song),
+		Album:      services.NewAlbumService(repos.Album, repos.AlbumContributor, repos.Song, repos.Artist),
 		Song:       services.NewSongService(repos.Song, repos.Artist, repos.Genre, repos.Album, repos.Stream, repos.SongContributorRepository),
 		Genre:      services.NewGenreService(repos.Genre),
 		Playlist:   services.NewPlaylistService(repos.Playlist, repos.PlaylistSong, repos.Song),
