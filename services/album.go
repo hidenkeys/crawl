@@ -76,7 +76,7 @@ func (s *albumService) GetAllAlbums(ctx context.Context, params api.GetAlbumsPar
 
 func (s *albumService) GetAllArtistAlbums(ctx context.Context, artist uuid.UUID, page int, limit int) ([]models.Album, error) {
 
-	return s.albumRepo.GetAll(page, limit, "artist_id = "+artist.String())
+	return s.albumRepo.GetByArtist(artist)
 }
 
 func (s *albumService) UpdateAlbum(ctx context.Context, albumID uuid.UUID, album *models.Album) (*models.Album, error) {

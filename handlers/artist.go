@@ -183,3 +183,19 @@ func (h *Handlers) GetArtistsArtistIdSongs(c *fiber.Ctx, artistId types.UUID, pa
 		Data:    songs,
 	})
 }
+
+func (h *Handlers) GetArtistsArtistIdAlbums(c *fiber.Ctx, artistId api.ArtistId, params api.GetArtistsArtistIdAlbumsParams) error {
+	albums, err := h.Album.GetAllArtistAlbums(c.Context(), artistId, *params.Page, *params.Limit)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to fetch artist albuma",
+		})
+	}
+
+	return c.JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "All albums by artist fetched successfully",
+		Data:    albums,
+	})
+}

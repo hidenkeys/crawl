@@ -6,6 +6,7 @@ import (
 	"crawl/models"
 	"crawl/repositories"
 	"errors"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 )
 
@@ -152,15 +153,18 @@ func (s *purchaseService) PurchaseSong(ctx context.Context, purchase api.PostPur
 	var song *models.Song
 	song, err := s.songRepo.GetByID(purchase.SongId)
 	if err != nil {
+		log.Errorf("Song not found")
 		return nil, errors.New("song not found")
 	}
 
 	// Check if user already purchased this song
 	hasPurchased, err := s.songPurchaseRepo.HasPurchasedSong(purchase.UserId, purchase.SongId)
 	if err != nil {
+		log.Errorf("Error checking if user has purchased song")
 		return nil, err
 	}
 	if hasPurchased {
+		log.Errorf("User already purchased song")
 		return nil, errors.New("user already purchased this song")
 	}
 

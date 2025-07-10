@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crawl/api"
 	"crawl/repositories"
 	"crawl/services"
 	"github.com/gofiber/fiber/v2"
@@ -23,18 +22,13 @@ type Handlers struct {
 	Payment    services.PaymentService
 }
 
-func (h *Handlers) GetArtistsArtistIdAlbums(c *fiber.Ctx, artistId api.ArtistId, params api.GetArtistsArtistIdAlbumsParams) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (h *Handlers) PostStripeWebhook(c *fiber.Ctx) error {
-	//if err := h.Payment.HandleWebhook(c.Body(), c.Get("Stripe-Signature")); err != nil {
-	//	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	//}
-	//
-	//return c.Status(fiber.StatusOK).JSON("Successful")
-	panic("Implement me")
+	if err := h.Payment.HandleWebhook(c.Body(), c.Get("Stripe-Signature")); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON("Successful")
+	//panic("Implement me")
 }
 
 func NewHandlers(db *gorm.DB) *Handlers {

@@ -43,7 +43,7 @@ func (r *AlbumPurchaseRepository) GetUserAlbumPurchases(userID uuid.UUID) ([]mod
 func (r *AlbumPurchaseRepository) HasPurchasedAlbum(userID, albumID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.DB.Model(&models.AlbumPurchase{}).
-		Where("user_id = ? AND album_id = ? payment_status = completed", userID, albumID).
+		Where("user_id = ? AND album_id = ? AND payment_status = ?", userID, albumID, "completed").
 		Count(&count).
 		Error
 	return count > 0, err
