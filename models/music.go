@@ -20,7 +20,6 @@ type Song struct {
 	Title         string     `gorm:"size:255;not null" json:"title"`
 	ArtistID      uuid.UUID  `gorm:"not null;index" json:"artist_id"`
 	AlbumID       *uuid.UUID `gorm:"index" json:"album_id,omitempty"`
-	Duration      int        `gorm:"not null" json:"duration"` // in seconds
 	Price         int        `gorm:"not null" json:"price"`
 	AudioURL      string     `gorm:"size:255;not null" json:"audio_url"`
 	PreviewURL    string     `gorm:"size:255" json:"preview_url"`
@@ -31,6 +30,7 @@ type Song struct {
 	Likes         *int       `gorm:"default:0" json:"likes"`
 	Lyrics        *string    `gorm:"type:text" json:"lyrics"`
 	IsFlagged     bool       `gorm:"default:false" json:"is_flagged"`
+	Order         *int       `gorm:"default:0" json:"order"`
 	Artist        Artist     `gorm:"foreignKey:ArtistID" json:"-"`
 	Album         *Album     `gorm:"foreignKey:AlbumID" json:"album,omitempty"`
 	Genre         *Genre     `gorm:"foreignKey:GenreID" json:"genre,omitempty"`

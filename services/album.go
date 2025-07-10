@@ -23,23 +23,27 @@ type AlbumService interface {
 	GetAlbumSongs(ctx context.Context, albumID uuid.UUID) ([]models.Song, error)
 	FlagAlbum(ctx context.Context, albumID uuid.UUID) error
 	LikeAlbum(ctx context.Context, albumID uuid.UUID) error
+	CreateAlbumWithSongs(ctx context.Context, album *models.Album, songs []models.Song) (*models.Album, error)
 }
 
 type albumService struct {
 	albumRepo            repositories.IAlbumRepository
 	albumContributorRepo repositories.IAlbumContributorRepository
 	songRepo             repositories.ISongRepository
+	artistRepo           repositories.IArtistRepository
 }
 
 func NewAlbumService(
 	albumRepo repositories.IAlbumRepository,
 	albumContributorRepo repositories.IAlbumContributorRepository,
 	songRepo repositories.ISongRepository,
+	artistRepo repositories.IArtistRepository,
 ) AlbumService {
 	return &albumService{
 		albumRepo:            albumRepo,
 		albumContributorRepo: albumContributorRepo,
 		songRepo:             songRepo,
+		artistRepo:           artistRepo,
 	}
 }
 
@@ -155,4 +159,43 @@ func (s *albumService) LikeAlbum(ctx context.Context, albumID uuid.UUID) error {
 		return errors.New("album not found")
 	}
 	return nil
+}
+
+func (s *albumService) CreateAlbumWithSongs(ctx context.Context, album *models.Album, songs []models.Song) (*models.Album, error) {
+	// Basic validation for album
+	if album.Title == "" {
+		return nil, errors.New("album title is required")
+	}
+	if album.ArtistID == uuid.Nil {
+		return nil, errors.New("artist ID is required")
+	}
+
+	// Basic validation for songs
+	if len(songs) == 0 {
+		return nil, errors.New("at least one song is required for the album")
+	}
+	for _, song := range songs {
+		if song.Title == "" {
+			return nil, errors.New("song title is required")
+		}
+		if song.AudioURL == "" {
+			return nil, errors.New("song audio URL is required")
+		}
+		// Add more song validations as needed
+	}
+
+	createdAlbum, err := s.albumRepo.CreateAlbumWithSongs(album, songs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Increment song upload count for the artist
+	err = s.artistRepo.AddSongUploadCount(album.ArtistID, len(songs))
+	if err != nil {
+		// Log the error but don't return it, as the album and songs are already created
+		// In a real application, you might want to handle this more robustly (e.g., a retry mechanism)
+		println("Warning: Failed to increment song upload count for artist: " + err.Error())
+	}
+
+	return createdAlbum, nil
 }

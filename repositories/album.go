@@ -84,3 +84,24 @@ func (r *AlbumRepository) SearchAlbums(query *string, artist *string, genre *str
 func (r *AlbumRepository) FlagContent(albumID uuid.UUID) error {
 	return r.DB.Model(&models.Album{}).Where("id = ?", albumID).Update("is_flagged", true).Error
 }
+
+func (r *AlbumRepository) CreateAlbumWithSongs(album *models.Album, songs []models.Song) (*models.Album, error) {
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(album).Error; err != nil {
+			return err
+		}
+
+		for _, song := range songs {
+			song.AlbumID = &album.ID
+			if err := tx.Create(&song).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return album, nil
+}

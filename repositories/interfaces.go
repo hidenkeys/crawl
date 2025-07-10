@@ -57,6 +57,7 @@ type IAlbumRepository interface {
 	SearchAlbums(query *string, artist *string, genre *string, sort *string, page *int, limit *int) ([]models.Album, error)
 	FlagContent(albumID uuid.UUID) error
 	AddLikes(id uuid.UUID, count int) error
+	CreateAlbumWithSongs(album *models.Album, songs []models.Song) (*models.Album, error)
 }
 
 type IPlaylistRepository interface {

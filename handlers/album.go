@@ -360,3 +360,95 @@ func (h *Handlers) PostAlbumsLikeAlbumId(c *fiber.Ctx, albumId api.AlbumId) erro
 		Data:    nil,
 	})
 }
+
+func (h *Handlers) PostAlbumsBulk(c *fiber.Ctx) error {
+	// JWT authentication check
+	userDetails, err := h.getDetailsFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(api.Error{
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+
+	var bulkReq api.BulkAlbumRequest
+	if err := c.BodyParser(&bulkReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request body",
+		})
+	}
+
+	// Verify the requesting user is the artist for the album
+	artist, err := h.User.GetArtistByUserId(c.Context(), userDetails.userID)
+	if err != nil || artist.ID != bulkReq.Album.ArtistId {
+		return c.Status(fiber.StatusForbidden).JSON(api.Error{
+			Code:    fiber.StatusForbidden,
+			Message: "You can only create albums for yourself",
+		})
+	}
+
+	// Convert api.Album to models.Album
+	modelAlbum := models.Album{
+		Title:    bulkReq.Album.Title,
+		ArtistID: bulkReq.Album.ArtistId,
+	}
+	if bulkReq.Album.Description != nil {
+		modelAlbum.Description = *bulkReq.Album.Description
+	}
+	if bulkReq.Album.CoverImageUrl != nil {
+		modelAlbum.CoverImageURL = *bulkReq.Album.CoverImageUrl
+	}
+	if bulkReq.Album.Price != nil {
+		modelAlbum.Price = *bulkReq.Album.Price
+	} else {
+		modelAlbum.Price = 0
+	}
+	if bulkReq.Album.ReleaseDate != nil {
+		modelAlbum.ReleaseDate = *bulkReq.Album.ReleaseDate
+	}
+	if bulkReq.Album.IsFlagged != nil {
+		modelAlbum.IsFlagged = *bulkReq.Album.IsFlagged
+	} else {
+		modelAlbum.IsFlagged = false
+	}
+	if bulkReq.Album.Id != nil {
+		modelAlbum.ID = *bulkReq.Album.Id
+	}
+
+	// Convert api.Song slice to models.Song slice
+	modelSongs := make([]models.Song, len(bulkReq.Songs))
+	for i, s := range bulkReq.Songs {
+		modelSongs[i] = models.Song{
+			Title:       s.Title,
+			ArtistID:    s.ArtistId,
+			AlbumID:     s.AlbumId,
+			Price:       s.Price,
+			AudioURL:    s.AudioUrl,
+			ReleaseDate: s.ReleaseDate,
+			GenreID:     &s.GenreId,
+			Lyrics:      s.Lyrics,
+			Order:       s.Order,
+		}
+		if s.PreviewUrl != nil {
+			modelSongs[i].PreviewURL = *s.PreviewUrl
+		}
+		if s.CoverImageUrl != nil {
+			modelSongs[i].CoverImageURL = *s.CoverImageUrl
+		}
+	}
+
+	createdAlbum, err := h.Album.CreateAlbumWithSongs(c.Context(), &modelAlbum, modelSongs)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to create album and songs: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album and songs created successfully",
+		Data:    createdAlbum,
+	})
+}

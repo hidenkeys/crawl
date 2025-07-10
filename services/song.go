@@ -69,9 +69,6 @@ func (s *songService) CreateSong(ctx context.Context, song *models.Song) (*model
 	if song.ArtistID == uuid.Nil {
 		return nil, errors.New("artist ID is required")
 	}
-	if song.Duration <= 0 {
-		return nil, errors.New("duration must be positive")
-	}
 
 	// Verify artist exists
 	_, err := s.artistRepo.GetByID(song.ArtistID)
@@ -156,7 +153,6 @@ func (s *songService) UpdateSong(ctx context.Context, songID uuid.UUID, song *mo
 
 	// Update fields
 	existingSong.Title = song.Title
-	existingSong.Duration = song.Duration
 	existingSong.Price = song.Price
 	existingSong.AudioURL = song.AudioURL
 	existingSong.PreviewURL = song.PreviewURL

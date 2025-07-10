@@ -72,7 +72,6 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 	song := &models.Song{
 		Title:       songReq.Title,
 		ArtistID:    songReq.ArtistId,
-		Duration:    songReq.Duration,
 		Price:       songReq.Price,
 		AudioURL:    songReq.AudioUrl,
 		ReleaseDate: songReq.ReleaseDate,
@@ -190,7 +189,6 @@ func (h *Handlers) PutSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 
 	song.Title = songReq.Title
 	song.ArtistID = songReq.ArtistId
-	song.Duration = songReq.Duration
 	song.Price = songReq.Price
 	song.AudioURL = songReq.AudioUrl
 	song.ReleaseDate = songReq.ReleaseDate
