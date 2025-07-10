@@ -33,7 +33,7 @@ func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
 	}
 
 	// Verify the album exists
-	_, err = h.Album.GetAlbumByID(c.Context(), purchaseReq.AlbumId)
+	album, err := h.Album.GetAlbumByID(c.Context(), purchaseReq.AlbumId)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(api.Error{
 			Code:    fiber.StatusBadRequest,
@@ -49,13 +49,41 @@ func (h *Handlers) PostPurchasesAlbums(c *fiber.Ctx) error {
 			Message: "Failed to process purchase",
 		})
 	}
+	checkoutReq := services.CreateCheckoutSessionRequest{
+		Name:     album.Title,
+		ID:       purchase.ID.String(),
+		Price:    int64(album.Price),
+		ItemType: "album",
+		ItemID:   album.ID.String(),
+		UserID:   userDetails.userID.String(),
+	}
 
-	return c.Status(fiber.StatusCreated).JSON(
-		models.Response{
-			Code:    fiber.StatusOK,
-			Message: "Album purchased successful",
-			Data:    purchase,
+	session, err := h.Payment.CreateCheckoutSession(checkoutReq)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to create checkout session",
 		})
+	}
+
+	purchase.StripeTransactionID = session.StripeSessionID
+	purchase.Metadata = session.MetaData
+
+	_, err = h.Purchase.UpdatePurchaseAlbum(c.Context(), *purchase)
+	if err != nil {
+		return c.Status(fiber.StatusExpectationFailed).JSON(api.Error{
+			Code:    fiber.StatusExpectationFailed,
+			Message: "Failed to update purchase",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(models.Response{
+		Code:    fiber.StatusOK,
+		Message: "Album purchase request made successfully",
+		Data: map[string]string{
+			"url": session.PaymentUrl,
+		},
+	})
 }
 
 func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
@@ -106,6 +134,7 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 		ID:       purchase.ID.String(),
 		Price:    int64(song.Price),
 		ItemType: "song",
+		ItemID:   song.ID.String(),
 		UserID:   userDetails.userID.String(),
 	}
 
@@ -130,7 +159,7 @@ func (h *Handlers) PostPurchasesSongs(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(models.Response{
 		Code:    fiber.StatusOK,
-		Message: "Song purchased successfully",
+		Message: "Song purchase request made successfully",
 		Data: map[string]string{
 			"url": session.PaymentUrl,
 		},

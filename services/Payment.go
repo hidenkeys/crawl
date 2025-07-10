@@ -1,14 +1,13 @@
 package services
 
 import (
-	"crawl/models"
 	"crawl/repositories"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/checkout/session"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/checkout/session"
+	"github.com/stripe/stripe-go/v82/webhook"
 	"log"
 	"os"
 )
@@ -46,6 +45,7 @@ type CreateCheckoutSessionRequest struct {
 	ID       string `json:"id"`
 	Price    int64  `json:"price"`
 	ItemType string `json:"item_type"` // "song" or "album"
+	ItemID   string `json:"item_id"`
 	UserID   string `json:"user_id"`
 }
 
@@ -77,7 +77,8 @@ func (s *paymentService) CreateCheckoutSession(req CreateCheckoutSessionRequest)
 		CancelURL:  stripe.String(os.Getenv("FAILURE_URL")),
 		Metadata: map[string]string{
 			"user_id":   req.UserID,
-			"item_id":   req.ID,
+			"trans_id":  req.ID,
+			"item_id":   req.ItemID,
 			"item_type": req.ItemType,
 		},
 	}
@@ -91,7 +92,8 @@ func (s *paymentService) CreateCheckoutSession(req CreateCheckoutSessionRequest)
 		StripeSessionID: sess.ID,
 		MetaData: map[string]string{
 			"user_id":   req.UserID,
-			"item_id":   req.ID,
+			"trans_id":  req.ID,
+			"item_id":   req.ItemID,
 			"item_type": req.ItemType,
 		},
 		PaymentUrl: sess.URL,
@@ -160,36 +162,52 @@ func (s *paymentService) fulfillPurchase(checkoutSession stripe.CheckoutSession)
 	itemType := checkoutSession.Metadata["item_type"]
 	_, err := uuid.Parse(checkoutSession.Metadata["user_id"])
 	if err != nil {
+		log.Printf("Failed to parse user ID")
 		return fmt.Errorf("failed to parse user ID: %w", err)
 	}
 	itemID, err := uuid.Parse(checkoutSession.Metadata["item_id"])
 	if err != nil {
+		log.Printf("Failed to parse item id")
 		return fmt.Errorf("failed to parse item ID: %w", err)
+	}
+
+	purchaseID, err := uuid.Parse(checkoutSession.Metadata["trans_id"])
+	if err != nil {
+		log.Printf("Failed to parse purchase id")
+		return fmt.Errorf("failed to parse purchase ID: %w", err)
 	}
 
 	switch itemType {
 	case "song":
-		_, err := s.songRepo.GetByID(itemID)
+		purchase, err := s.songPurchaseRepo.GetByID(purchaseID)
+		if err != nil {
+			log.Printf("Failed to find purchase record")
+			return fmt.Errorf("failed to find purchase record: %w", err)
+		}
+
+		_, err = s.songRepo.GetByID(itemID)
 		if err != nil {
 			return fmt.Errorf("failed to get song: %w", err)
 		}
-		purchase := &models.SongPurchase{
-			PaymentStatus:       "completed",
-			StripeTransactionID: checkoutSession.PaymentIntent.ID,
-		}
+		purchase.PaymentStatus = "completed"
+		//purchase.StripeTransactionID = checkoutSession.PaymentIntent.ID
 		_, err = s.songPurchaseRepo.Update(purchase)
 		if err != nil {
 			return fmt.Errorf("failed to update song purchase: %w", err)
 		}
 	case "album":
-		_, err := s.albumRepo.GetByID(itemID)
+		purchase, err := s.albumPurchaseRepo.GetByID(purchaseID)
+		if err != nil {
+			log.Printf("Failed to find purchase record")
+			return fmt.Errorf("failed to find purchase record: %w", err)
+		}
+
+		_, err = s.albumRepo.GetByID(itemID)
 		if err != nil {
 			return fmt.Errorf("failed to get album: %w", err)
 		}
-		purchase := &models.AlbumPurchase{
-			PaymentStatus:       "completed",
-			StripeTransactionID: checkoutSession.PaymentIntent.ID,
-		}
+		purchase.PaymentStatus = "completed"
+		//purchase.StripeTransactionID = checkoutSession.PaymentIntent.ID
 		_, err = s.albumPurchaseRepo.Update(purchase)
 		if err != nil {
 			return fmt.Errorf("failed to update album purchase: %w", err)
