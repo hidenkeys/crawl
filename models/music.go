@@ -21,6 +21,7 @@ type Song struct {
 	ArtistID      uuid.UUID  `gorm:"not null;index" json:"artist_id"`
 	AlbumID       *uuid.UUID `gorm:"index" json:"album_id,omitempty"`
 	Price         int        `gorm:"not null" json:"price"`
+	ArtistsNames  []string   `gorm:"type:text" json:"artists_names"`
 	AudioURL      string     `gorm:"size:255;not null" json:"audio_url"`
 	PreviewURL    string     `gorm:"size:255" json:"preview_url"`
 	ReleaseDate   time.Time  `gorm:"type:date" json:"release_date"`
