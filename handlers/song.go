@@ -90,6 +90,10 @@ func (h *Handlers) PostSongs(c *fiber.Ctx) error {
 		song.CoverImageURL = *songReq.CoverImageUrl
 	}
 
+	if songReq.ArtistsNames != nil {
+		song.ArtistsNames = songReq.ArtistsNames
+	}
+
 	if songReq.PreviewUrl != nil {
 		song.PreviewURL = *songReq.PreviewUrl
 	}
@@ -196,6 +200,10 @@ func (h *Handlers) PutSongsSongId(c *fiber.Ctx, songId types.UUID) error {
 
 	if songReq.AlbumId != nil {
 		song.AlbumID = songReq.AlbumId
+	}
+
+	if songReq.ArtistsNames != nil {
+		song.ArtistsNames = songReq.ArtistsNames
 	}
 
 	if songReq.CoverImageUrl != nil {
